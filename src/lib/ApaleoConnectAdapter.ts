@@ -20,11 +20,12 @@ import { ApaleoGenerateAccessToken } from './Authorization'
 import {
     IApaeloAccount,
     IApaleoProperty, IApaleoPropertyList,
-    IApaleoUnitGroupList, IApaleoUnitGroup
+    IApaleoUnitGroupList, IApaleoUnitGroup,
+    IApaleoRatePlanList
 } from './ApaleoInterfaces'
 import { Config } from './ApaleoConfig'
 
-import { convertUnitGroupToRoomType } from './utils'
+import { convertUnitGroupToRoomType, toConnectedRatePlanItem } from './utils'
 
 interface ApaleoConnectAdaptorOptions {
     refresh_token: ITokenValue
@@ -70,6 +71,11 @@ export class ApaleoConnectAdaptor extends RestRequestDriver implements IBaseAdap
 
     }
 
+
+    getRatesByRatePlanId(ratePlanId: Models.ID): Promise<Models.IConnected_ListOf<Models.IConnected_Rate>> {
+        throw new Error('Method not implemented.')
+    }
+
     getAuthorizeUrl?(params?: any): string {
         throw new Error('Method not implemented.')
     }
@@ -99,10 +105,15 @@ export class ApaleoConnectAdaptor extends RestRequestDriver implements IBaseAdap
         const res = await this.http.get<IApaleoPropertyList>('/inventory/v1/properties', { params })
 
         let hotels: IConnected_Hotel[] = res.data.properties.map(prop => {
+
             return {
                 id: prop.id,
                 name: { en: prop.name },
-                description: { en: prop.description }
+                description: { en: prop.description },
+                is_active: true,
+                company_name: prop.companyName || '',
+                currency_code: prop.currencyCode || '',
+
             }
         })
         return { data: hotels, count: res.data.count }
@@ -145,17 +156,47 @@ export class ApaleoConnectAdaptor extends RestRequestDriver implements IBaseAdap
         }
     }
 
-    async getToomTypeById(roomTypeId: ID): Promise<Models.IConnected_RoomType> {
+    async getRoomTypeById(roomTypeId: ID): Promise<Models.IConnected_RoomType> {
 
         const res = await this.http.get<IApaleoUnitGroup>(`/inventory/v1/unit-groups/${roomTypeId}`)
 
         return convertUnitGroupToRoomType(res.data)
     }
 
+    // Rateplan
+
+    /**
+     * 
+     * @param hotelId 
+     * @param params 
+     * @returns IConnected_RatePlanItem[]
+     */
+
+    async getRatePlansByHotelId(hotelId: Models.ID, params: any = {}): Promise<Models.IConnected_ListOf<Models.IConnected_RatePlanItem>> {
+
+
+        const { data } = await this.http.get<IApaleoRatePlanList>(`/rateplan/v1/rate-plans`, {
+            params: {
+                propertyId: hotelId
+            }
+        })
+
+
+        let ratePlanItems = data.ratePlans.map(rpi => toConnectedRatePlanItem(rpi))
+        return {
+            data: ratePlanItems,
+            count: data.count
+        }
+    }
+
+    getRatePlanById(ratePlanId: Models.ID, params?: any): Promise<Models.IConnected_RatePlan> {
+        throw new Error('Method not implemented.')
+    }
+
     async getRooms(hotelId: ID, params: {}): Promise<IConnected_ListOf<IConnected_Room>> {
         //https://api.apaleo.com/inventory/v1/unit-groups?propertyId=BER&pageNumber=1&pageSize=100
 
-        const { data } = await this.http.get(`/inventory/v1/properties${hotelId}`, { params })
+
         throw new Error('Method not implemented.');
 
     }

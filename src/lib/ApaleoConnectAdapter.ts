@@ -5,18 +5,27 @@ import {
     ITokenValue, IBaseTokenStore
 } from '@cord-travel/pms-connect'
 import {
+    ID,
     IConnected_ListOf,
     IConnected_Account,
     IConnected_Hotel,
     IConnected_RoomType,
-    IConnected_Room
+    IConnected_Room,
 } from '@cord-travel/pms-connect/dist/models'
 
 
 
+
 import { ApaleoGenerateAccessToken } from './Authorization'
-import {  IApaeloAccount, IApaleoProperty, IApaleoPropertyList, IApaleoUnitGroupList } from './ApaleoInterfaces'
+import {
+    IApaeloAccount,
+    IApaleoProperty, IApaleoPropertyList,
+    IApaleoUnitGroupList, IApaleoUnitGroup,
+    IApaleoRatePlanList
+} from './ApaleoInterfaces'
 import { Config } from './ApaleoConfig'
+
+import { convertUnitGroupToRoomType, toConnectedRatePlanItem } from './utils'
 
 interface ApaleoConnectAdaptorOptions {
     refresh_token: ITokenValue
@@ -27,13 +36,13 @@ interface ApaleoConnectAdaptorOptions {
     tokenStore?: IBaseTokenStore | null | undefined
 }
 
-export class ApaleoConnectAdaptor extends RestRequestDriver implements IBaseAdapter  {
+export class ApaleoConnectAdaptor extends RestRequestDriver implements IBaseAdapter {
 
     constructor(options: ApaleoConnectAdaptorOptions) {
 
-        const {  client_id = null, client_secret = null , refresh_token = "", access_token, redirect_uri=""} = options
+        const { client_id = null, client_secret = null, refresh_token = "", access_token, redirect_uri = "" } = options
 
-        if(!client_id || !client_secret) throw new Error('Apaleo client credentials missing')
+        if (!client_id || !client_secret) throw new Error('Apaleo client credentials missing')
         super({
             refreshToken: refresh_token,
             accessToken: access_token || '',
@@ -49,22 +58,28 @@ export class ApaleoConnectAdaptor extends RestRequestDriver implements IBaseAdap
                 )
                 if (!data) throw Error('ApaleoConnectAdaptor:generteAccessToken - Cant create access token')
                 return data
-            
+
             }
 
-        
+
         })
 
         if (options.tokenStore) {
             this.setTokenStore(options.tokenStore)
         }
-        
-        
+
+
     }
+
+
+    getRatesByRatePlanId(ratePlanId: Models.ID): Promise<Models.IConnected_ListOf<Models.IConnected_Rate>> {
+        throw new Error('Method not implemented.')
+    }
+
     getAuthorizeUrl?(params?: any): string {
         throw new Error('Method not implemented.')
     }
-    
+
 
 
     /**
@@ -77,6 +92,8 @@ export class ApaleoConnectAdaptor extends RestRequestDriver implements IBaseAdap
         return res.data
     }
 
+    // HOTELS
+
     /**
      * Get the list of properties.
      * API Doc : https://api.apaleo.com/swagger/index.html?urls.primaryName=Inventory%20V1
@@ -86,7 +103,20 @@ export class ApaleoConnectAdaptor extends RestRequestDriver implements IBaseAdap
 
     async getHotels(params = {}): Promise<IConnected_ListOf<IConnected_Hotel>> {
         const res = await this.http.get<IApaleoPropertyList>('/inventory/v1/properties', { params })
-        return { data: res.data.properties, count: res.data.count } 
+
+        let hotels: IConnected_Hotel[] = res.data.properties.map(prop => {
+
+            return {
+                id: prop.id,
+                name: { en: prop.name },
+                description: { en: prop.description },
+                is_active: true,
+                company_name: prop.companyName || '',
+                currency_code: prop.currencyCode || '',
+
+            }
+        })
+        return { data: hotels, count: res.data.count }
     }
 
     /**
@@ -95,27 +125,82 @@ export class ApaleoConnectAdaptor extends RestRequestDriver implements IBaseAdap
      * @param params 
      * @returns 
      */
-    async getHotelById(id: Models.ID, params = {}): Promise<IConnected_Hotel> {
-        const { data } = await this.http.get<IApaleoProperty>(`/inventory/v1/properties${id}`, { params })
+    async getHotelById(id: ID, params = {}): Promise<IConnected_Hotel> {
+        const { data } = await this.http.get<IApaleoProperty>(`/inventory/v1/properties/${id}`, { params })
 
         return {
             id: data.id,
-            name: data.name.en,
-            description: data.description.en
+            name: data.name,
+            description: data.description,
+
         }
     }
 
-    getRoomsTypes(hotelId: string | number, params?: any): Promise<IConnected_ListOf<IConnected_RoomType>> {
+    // ROOM TYPES
+
+    async getRoomsTypes(hotelId: string | number, params: any = {}): Promise<IConnected_ListOf<IConnected_RoomType>> {
+
+        const { data } = await this.http.get<IApaleoUnitGroupList>('/inventory/v1/unit-groups', {
+            params: {
+                propertyId: hotelId,
+                ...params
+
+            }
+        })
+
+        const { count, unitGroups } = data
+        const roomTypes: IConnected_RoomType[] = unitGroups.map(ug => convertUnitGroupToRoomType(ug))
+        return {
+            count,
+            data: roomTypes
+        }
+    }
+
+    async getRoomTypeById(roomTypeId: ID): Promise<Models.IConnected_RoomType> {
+
+        const res = await this.http.get<IApaleoUnitGroup>(`/inventory/v1/unit-groups/${roomTypeId}`)
+
+        return convertUnitGroupToRoomType(res.data)
+    }
+
+    // Rateplan
+
+    /**
+     * 
+     * @param hotelId 
+     * @param params 
+     * @returns IConnected_RatePlanItem[]
+     */
+
+    async getRatePlansByHotelId(hotelId: Models.ID, params: any = {}): Promise<Models.IConnected_ListOf<Models.IConnected_RatePlanItem>> {
+
+
+        const { data } = await this.http.get<IApaleoRatePlanList>(`/rateplan/v1/rate-plans`, {
+            params: {
+                propertyId: hotelId
+            }
+        })
+
+
+        let ratePlanItems = data.ratePlans.map(rpi => toConnectedRatePlanItem(rpi))
+        return {
+            data: ratePlanItems,
+            count: data.count
+        }
+    }
+
+    getRatePlanById(ratePlanId: Models.ID, params?: any): Promise<Models.IConnected_RatePlan> {
         throw new Error('Method not implemented.')
     }
-    async getRooms(hotelId: Models.ID, params: {}): Promise<IConnected_ListOf<IConnected_Room>> {
+
+    async getRooms(hotelId: ID, params: {}): Promise<IConnected_ListOf<IConnected_Room>> {
         //https://api.apaleo.com/inventory/v1/unit-groups?propertyId=BER&pageNumber=1&pageSize=100
-        
-        const { data } = await this.http.get<IApaleoUnitGroupList>(`/inventory/v1/properties${hotelId}`, { params })
+
+
         throw new Error('Method not implemented.');
 
     }
-    getRoomById(roomId: string | null): Promise<Models.IConnected_Room> {
+    getRoomById(roomId: ID): Promise<Models.IConnected_Room> {
         throw new Error('Method not implemented.');
     }
 

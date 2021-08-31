@@ -266,3 +266,31 @@ export interface IApaleoAddress {
   regionCode: string;
   countryCode: string;
 }
+
+// Rate
+
+export interface IApaleoRateList extends IApaleoPagination {
+  rates: IApaleoRate[];
+}
+export interface IApaleoRate {
+  from: string;
+  to: string;
+  price?: IApaleoMonetaryValue;
+  includedServicesPrice?: IApaleoMonetaryValue;
+  calculatedPrices?: IApaleoCalculatedRate[];
+  restrictions: IApaleoRateRestriction;
+}
+
+export interface IApaleoRateRestriction {
+  closed: boolean;
+  closedOnArrival: boolean;
+  closedOnDeparture: boolean;
+  minLengthOfStay?: number;
+  maxLengthOfStay?: number;
+}
+
+export interface IApaleoCalculatedRate {
+  adults: number;
+  price: IApaleoMonetaryValue;
+  includedServicesPrice?: IApaleoMonetaryValue;
+}

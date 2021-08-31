@@ -1,9 +1,13 @@
 import { Models } from '@cord-travel/pms-connect';
-import { IConnected_RatePlan } from '../../../pms-connect/dist/models';
+import {
+  IConnected_RatePlan,
+  IConnected_Rate
+} from '../../../pms-connect/dist/models';
 import {
   IApaleoUnitGroup,
   IApaleoRatePlanItem,
-  IApaleoRatePlan
+  IApaleoRatePlan,
+  IApaleoRate
 } from './ApaleoInterfaces';
 export function convertUnitGroupToRoomType(
   unitGroup: IApaleoUnitGroup
@@ -129,5 +133,32 @@ export function convertRatePlanToConnectedRatePlan(
           // type: sc.type
         }))
       : []
+  };
+}
+
+export function convertToConnectedRate(rate: IApaleoRate): IConnected_Rate {
+  return {
+    from: rate.from,
+    to: rate.to,
+    price: rate.price || undefined,
+    calculated_prices: rate.calculatedPrices
+      ? rate.calculatedPrices.map((cp) => ({
+          adults: cp.adults,
+          price: cp.price,
+          included_services_price: cp.includedServicesPrice
+        }))
+      : [],
+    included_services_price: rate.includedServicesPrice
+      ? rate.includedServicesPrice
+      : undefined,
+    restrictions: rate.restrictions
+      ? {
+          closed: rate.restrictions.closed,
+          closed_on_arrival: rate.restrictions.closedOnArrival,
+          closed_on_departure: rate.restrictions.closedOnDeparture,
+          max_length_of_stay: rate.restrictions.maxLengthOfStay,
+          min_length_of_stay: rate.restrictions.minLengthOfStay
+        }
+      : undefined
   };
 }

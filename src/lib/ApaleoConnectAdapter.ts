@@ -22,14 +22,16 @@ import {
     IApaleoUnitGroupList,
     IApaleoUnitGroup,
     IApaleoRatePlanList,
-    IApaleoRatePlan
+    IApaleoRatePlan,
+    IApaleoRateList
 } from './ApaleoInterfaces';
 import { Config } from './ApaleoConfig';
 
 import {
     convertUnitGroupToRoomType,
     toConnectedRatePlanItem,
-    convertRatePlanToConnectedRatePlan
+    convertRatePlanToConnectedRatePlan,
+    convertToConnectedRate
 } from './utils';
 
 interface ApaleoConnectAdaptorOptions {
@@ -215,9 +217,9 @@ export class ApaleoConnectAdaptor
 
     /**
      * Get single rateplan by its id
-     * @param ratePlanId 
-     * @param params 
-     * @returns 
+     * @param ratePlanId
+     * @param params
+     * @returns
      */
 
     async getRatePlanById(
@@ -230,6 +232,36 @@ export class ApaleoConnectAdaptor
         );
 
         return convertRatePlanToConnectedRatePlan(data);
+    }
+
+    /**
+     * Get  rates of a specified RatePlan
+     * @param ratePlan | ratePlanItem
+     * @param params 
+     * @returns 
+     */
+
+    async getRatesByRatePlan(
+        ratePlan: Models.IConnected_RatePlan | Models.IConnected_RatePlanItem,
+        params: any = {}
+    ): Promise<Models.IConnected_ListOf<Models.IConnected_Rate>> {
+        const { data } = await this.http.get<IApaleoRateList>(
+            `/rateplan/v1/rate-plans/${ratePlan.id}/rates`,
+            {
+                params: {
+                    from: ratePlan.rates_range.from,
+                    to: ratePlan.rates_range.to,
+                    ...params
+                }
+            }
+        );
+
+        const rates = data.rates.map((r) => convertToConnectedRate(r));
+
+        return {
+            count: data.count,
+            data: rates
+        };
     }
 
     async getRooms(

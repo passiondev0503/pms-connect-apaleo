@@ -1,13 +1,9 @@
 import { ID } from '../../../pms-connect/dist/models';
 
-export interface IApaleoMultiLangauge {
-  en: string;
-  de?: string;
-}
-
-export interface IApaleoPagination {
-  count: number;
-}
+import {
+  IApaleoMultiLangauge, IApaleoPagination,
+  IApaleoBookingPeriodModel, IApaleoPeriodModel, IApaleoRatesRangeModel, IApaleoSurchargeModel
+} from './common.inerfaces'
 
 export interface IApaleoBankAccount {
   iban: string;
@@ -213,27 +209,7 @@ export interface IApaleoRatePlan {
   includedServices?: IApaleoRatePlanServiceModel[];
 }
 
-export interface IApaleoPeriodModel {
-  hours: number;
-  days: number;
-  months: number;
-}
 
-export interface IApaleoSurchargeModel {
-  adults: number; //The total numbers of adults
-  type: string[]; // ENUM: Absolute, Percent
-  value: number;
-}
-
-export interface IApaleoBookingPeriodModel {
-  from: string;
-  to: string;
-}
-
-export interface IApaleoRatesRangeModel {
-  from: string;
-  to: string;
-}
 
 export interface IApaleoCancellationPolicy {
   id: string;
@@ -255,7 +231,6 @@ export interface IApaleoMonetaryValue {
   currency: string;
 }
 
-export interface IApaleoRate {}
 
 // Other
 export interface IApaleoAddress {
@@ -293,4 +268,18 @@ export interface IApaleoCalculatedRate {
   adults: number;
   price: IApaleoMonetaryValue;
   includedServicesPrice?: IApaleoMonetaryValue;
+}
+
+
+
+// Promo Code 
+
+export interface IApaleoPromoCode {
+  id?: string
+  code: string
+  relatedRateplanIds: string[]
+}
+
+export interface IApaleoPromoCodeList extends IApaleoPagination {
+  promoCodes: IApaleoPromoCode[]
 }

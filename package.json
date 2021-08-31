@@ -1,6 +1,6 @@
 {
   "name": "@cord-travel/pms-connect-apaleo",
-  "version": "1.0.0",
+  "version": "1.0.0-beta.0",
   "description": "",
   "main": "dist/index.js",
   "scripts": {

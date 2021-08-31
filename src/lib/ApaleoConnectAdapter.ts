@@ -23,7 +23,8 @@ import {
     IApaleoUnitGroup,
     IApaleoRatePlanList,
     IApaleoRatePlan,
-    IApaleoRateList
+    IApaleoRateList,
+    IApaleoPromoCodeList
 } from './ApaleoInterfaces';
 import { Config } from './ApaleoConfig';
 
@@ -80,6 +81,7 @@ export class ApaleoConnectAdaptor
             this.setTokenStore(options.tokenStore);
         }
     }
+
 
     getRatesByRatePlanId(
         ratePlanId: Models.ID
@@ -264,15 +266,29 @@ export class ApaleoConnectAdaptor
         };
     }
 
-    async getRooms(
-        hotelId: ID,
-        params: {}
-    ): Promise<IConnected_ListOf<IConnected_Room>> {
-        //https://api.apaleo.com/inventory/v1/unit-groups?propertyId=BER&pageNumber=1&pageSize=100
+    // PROMO CODES
 
-        throw new Error('Method not implemented.');
+    async getPromoCodes(hotelId: Models.ID, params?: any): Promise<Models.IConnected_ListOf<Models.IConnected_PromoCode>> {
+        const { data } = await this.http.get<IApaleoPromoCodeList>(`/rateplan/v1/promo-codes/codes`, {
+            params: {
+                propertyId: hotelId
+            }
+        })
+
+        let promoCodes: Models.IConnected_PromoCode[] = data.promoCodes.map(pc => {
+            return {
+                code: pc.code,
+                related_rateplan_ids: pc.relatedRateplanIds ? pc.relatedRateplanIds : []
+            }
+        })
+
+        return {
+            data: promoCodes,
+            count: data.count
+        }
     }
-    getRoomById(roomId: ID): Promise<Models.IConnected_Room> {
-        throw new Error('Method not implemented.');
-    }
+
+
+
+
 }

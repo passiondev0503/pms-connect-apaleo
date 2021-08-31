@@ -1,30 +1,23 @@
-import { ApaleoConnectAdaptor } from '../ApaleoConnectAdapter'
-import { createApaleoAdatperInstance } from './helpers'
+import { ApaleoConnectAdaptor } from '../ApaleoConnectAdapter';
+import { createApaleoAdatperInstance } from './helpers';
 
 let apaleo: ApaleoConnectAdaptor;
 beforeEach(() => {
+  apaleo = createApaleoAdatperInstance();
+});
 
-    apaleo = createApaleoAdatperInstance()
+test('Get list of hotels', async () => {
+  const hotels = await apaleo.getHotels();
 
-})
+  expect(hotels).toHaveProperty('data');
 
-test("Get list of hotels", async () => {
-    const hotels = await apaleo.getHotels()
+  expect(hotels.data.length).toBe(hotels.count);
+});
 
-    expect(hotels).toHaveProperty("data")
+test('Get single hotel', async () => {
+  const hotels = await apaleo.getHotels();
 
-    expect(hotels.data.length).toBe(hotels.count)
+  const hotelData = await apaleo.getHotelById(hotels.data[0].id);
 
-})
-
-test("Get single hotel", async () => {
-
-    const hotels = await apaleo.getHotels()
-
-    const hotelData = await apaleo.getHotelById(hotels.data[0].id)
-
-    expect(hotelData).toHaveProperty('name')
-
-
-
-})
+  expect(hotelData).toHaveProperty('name');
+});

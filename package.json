@@ -1,19 +1,21 @@
 {
   "name": "@cord-travel/pms-connect-apaleo",
-  "version": "1.0.0",
+  "version": "1.0.0-beta.2",
   "description": "",
-  "main": "dist/index.js",
+  "main": "./dist/lib/index.js",
+  "types": "./dist/lib/index.d.ts",
   "scripts": {
     "build": "tsc",
     "test": "jest",
-    "dlink": "npm link @cord-travel/pms-connect"
+    "dlink": "npm link @cord-travel/pms-connect",
+    "format": "prettier --config .prettierrc 'src/**/*.ts' --write"
   },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/cord-travel/pms-connect-apaleo.git"
   },
   "keywords": [],
-  "author": "",
+  "author": "Sarath TK <sarath.tk@cordiant.com> (http://github.com/saratonite)",
   "license": "ISC",
   "bugs": {
     "url": "https://github.com/cord-travel/pms-connect-apaleo/issues"
@@ -24,6 +26,7 @@
     "@types/node": "^16.7.1",
     "dotenv": "^10.0.0",
     "jest": "^27.0.6",
+    "prettier": "^2.3.2",
     "ts-jest": "^27.0.5",
     "typescript": "^4.3.5"
   },
@@ -31,6 +34,9 @@
     "axios": "^0.21.1"
   },
   "peerDependencies": {
-    "@cord-travel": "0.0.0"
-  }
+    "@cord-travel/ps-connect": "0.0.0"
+  },
+  "files": [
+    "dist/**"
+  ]
 }

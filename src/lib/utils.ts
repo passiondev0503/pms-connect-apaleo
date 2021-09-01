@@ -1,13 +1,19 @@
 import { Models } from '@cord-travel/pms-connect';
+import { type } from 'os';
 import {
   IConnected_RatePlan,
-  IConnected_Rate
+  IConnected_Rate,
+  IConnected_CancellationPolicy,
+  IConnected_NoShowPolicy
 } from '../../../pms-connect/dist/models';
 import {
   IApaleoUnitGroup,
   IApaleoRatePlanItem,
   IApaleoRatePlan,
-  IApaleoRate
+  IApaleoRate,
+  IApaleoCancellationPolicy,
+  IApaleoCancellationPolicyItem,
+  IApaleoNoShowPolicy
 } from './ApaleoInterfaces';
 export function convertUnitGroupToRoomType(
   unitGroup: IApaleoUnitGroup
@@ -59,12 +65,17 @@ export function convertRatePlanToConnectedRatePlan(
           id: rp.cancellationPolicy.id,
 
           name: {
-            en: <string>rp.cancellationPolicy.name
+            en:
+              typeof rp.cancellationPolicy.name === 'string'
+                ? rp.cancellationPolicy.name
+                : ''
           },
           description: {
-            en: <string>rp.cancellationPolicy.description
-          },
-          period_prior_to_arrival: rp.cancellationPolicy.periodPriorToArrival
+            en:
+              typeof rp.cancellationPolicy.description === 'string'
+                ? rp.cancellationPolicy.description
+                : ''
+          }
         }
       : undefined,
     no_show_policy: rp.noShowPolicy
@@ -158,6 +169,58 @@ export function convertToConnectedRate(rate: IApaleoRate): IConnected_Rate {
           closed_on_departure: rate.restrictions.closedOnDeparture,
           max_length_of_stay: rate.restrictions.maxLengthOfStay,
           min_length_of_stay: rate.restrictions.minLengthOfStay
+        }
+      : undefined
+  };
+}
+
+export function toConnectedCancellationPolicy(
+  cp: IApaleoCancellationPolicy | IApaleoCancellationPolicyItem
+): IConnected_CancellationPolicy {
+  return {
+    id: cp.id,
+    code: cp.code,
+    hotel_id: cp.propertyId,
+    name: {
+      en: typeof cp.name === 'string' ? cp.name : cp.name.en
+      // de: cp.name && cp.name?.de ? cp.name.de : ""
+    },
+    description: {
+      en:
+        typeof cp.description === 'string' ? cp.description : cp.description.en
+      // de: cp.description && cp.description.de ? cp.description.de : ""
+    },
+    period_from_reference: cp.periodFromReference,
+    fee: cp.fee
+      ? {
+          vat_type: cp.fee.vatType,
+          fixed_value: cp.fee.fixedValue,
+          percent_value: cp.fee.percentValue
+        }
+      : undefined,
+    reference: cp.reference
+  };
+}
+
+export function toConnectedNoShowPolicy(
+  nsp: IApaleoNoShowPolicy
+): IConnected_NoShowPolicy {
+  const { fee = undefined, id, name, description, code, propertyId } = nsp;
+  return {
+    id,
+    code,
+    hotel_id: propertyId,
+    name: {
+      en: name || ''
+    },
+    description: {
+      en: description || ''
+    },
+    fee: fee
+      ? {
+          vat_type: fee.vatType,
+          fixed_value: fee.fixedValue,
+          percent_value: fee.percentValue
         }
       : undefined
   };

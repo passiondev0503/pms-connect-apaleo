@@ -19,6 +19,7 @@ const { createStore }  = require('@cord-travel/pms-connect')
      APALEO_CLIENT_SECRET = "",
      APALEO_REDIRECT_URI,
      TEST_APALEO_REFRESH_TOKEN,
+     TEST_APALEO_ACCESS_TOKEN = ""
     } = process.env
  
      
@@ -26,7 +27,8 @@ const { createStore }  = require('@cord-travel/pms-connect')
      client_id: APALEO_CLIENT_ID,
      client_secret: APALEO_CLIENT_SECRET,
      redirect_uri: APALEO_REDIRECT_URI,
-     refresh_token: TEST_APALEO_REFRESH_TOKEN
+     refresh_token: TEST_APALEO_REFRESH_TOKEN,
+     access_token: TEST_APALEO_ACCESS_TOKEN
  
  })
 
@@ -43,16 +45,17 @@ apaleo.setTokenStore(dummyDBStore)
  
  async function main() {
      console.log(`Getting apaleo account details 🐹`)
+
+     const accountDetails = await apaleo.getAccount()
+     console.log('Account details ', accountDetails)
      const hotels = await apaleo.getHotels()
 
      console.log(`|------------------------------------|`)
      console.log(`        ${hotels.count} hotels     `)
      console.log(``)
-
      hotels.data.forEach(hotel => {
-         console.log(` 🏨   ${hotel.name}`)
+         console.log(`       🏨   ${hotel.name}         `)
      })
-
      console.log(`|------------------------------------|`)
 
 

@@ -1,9 +1,13 @@
 import { ID } from '../../../pms-connect/dist/models';
 
 import {
-  IApaleoMultiLangauge, IApaleoPagination,
-  IApaleoBookingPeriodModel, IApaleoPeriodModel, IApaleoRatesRangeModel, IApaleoSurchargeModel
-} from './common.inerfaces'
+  IApaleoMultiLangauge,
+  IApaleoPagination,
+  IApaleoBookingPeriodModel,
+  IApaleoPeriodModel,
+  IApaleoRatesRangeModel,
+  IApaleoSurchargeModel
+} from './common.inerfaces';
 
 export interface IApaleoBankAccount {
   iban: string;
@@ -174,7 +178,7 @@ export interface IApaleoRatePlanItem {
   minGuaranteeType: APALEO_MIN_GUARANTEE_TYPE[];
   priceCalculationMode?: APALEO_PRICE_CALCULATION_MODE[];
   isSubjectToCityTax: boolean;
-  cancellationPolicy: IApaleoCancellationPolicy;
+  cancellationPolicy: IApaleoCancellationPolicyItem;
   noShowPolicy: IApaleoNoShowPolicyItem;
   timeSliceDefinition: IApaleoTimeSliceDefinition;
   bookingPeriods?: IApaleoBookingPeriodModel;
@@ -196,7 +200,7 @@ export interface IApaleoRatePlan {
   minGuaranteeType: APALEO_MIN_GUARANTEE_TYPE[];
   priceCalculationMode?: APALEO_PRICE_CALCULATION_MODE[];
   isSubjectToCityTax: boolean;
-  cancellationPolicy: IApaleoCancellationPolicy;
+  cancellationPolicy: IApaleoCancellationPolicyItem;
   noShowPolicy: IApaleoNoShowPolicyItem;
   timeSliceDefinition: IApaleoTimeSliceDefinition;
   bookingPeriods?: IApaleoBookingPeriodModel[];
@@ -207,16 +211,6 @@ export interface IApaleoRatePlan {
   pricingRule?: IApaleoPricingRuleModel;
   ageCategories?: IApaleoRatePlanAgeCategoryModel[];
   includedServices?: IApaleoRatePlanServiceModel[];
-}
-
-
-
-export interface IApaleoCancellationPolicy {
-  id: string;
-  code?: string;
-  name: string | IApaleoMultiLangauge;
-  description: string | IApaleoMultiLangauge;
-  periodPriorToArrival: IApaleoPeriodModel;
 }
 
 export interface IApaleoNoShowPolicyItem {
@@ -230,7 +224,6 @@ export interface IApaleoMonetaryValue {
   amount: number;
   currency: string;
 }
-
 
 // Other
 export interface IApaleoAddress {
@@ -270,16 +263,69 @@ export interface IApaleoCalculatedRate {
   includedServicesPrice?: IApaleoMonetaryValue;
 }
 
-
-
-// Promo Code 
+// Promo Code
 
 export interface IApaleoPromoCode {
-  id?: string
-  code: string
-  relatedRateplanIds: string[]
+  id?: string;
+  code: string;
+  relatedRateplanIds: string[];
 }
 
 export interface IApaleoPromoCodeList extends IApaleoPagination {
-  promoCodes: IApaleoPromoCode[]
+  promoCodes: IApaleoPromoCode[];
+}
+
+// Cancellation policy
+enum APALEO_REFRENCE {
+  PriorToArrival = 'PriorToArrival',
+  AfterBooking = 'AfterBooking'
+}
+interface IApaleoBaseCancellationPolicy {
+  id: string;
+  code: string;
+  propertyId: string;
+  periodFromReference: IApaleoPeriodModel;
+  reference: APALEO_REFRENCE;
+
+  fee?: IApaleoFeeDetailsModel;
+}
+
+export interface IApaleoCancellationPolicyItem
+  extends IApaleoBaseCancellationPolicy {
+  name: string;
+  description: string;
+}
+
+export interface IApaleoCancellationPolicyList extends IApaleoPagination {
+  cancellationPolicies: IApaleoCancellationPolicyItem[];
+}
+
+export interface IApaleoCancellationPolicy
+  extends IApaleoBaseCancellationPolicy {
+  name: IApaleoMultiLangauge;
+  description: IApaleoMultiLangauge;
+}
+interface IApaleoFeeDetailsModel {
+  vatType: string;
+  fixedValue?: IApaleoMonetaryValue;
+  percentValue?: IApaleoPercentValueModel;
+}
+
+interface IApaleoPercentValueModel {
+  percent: number;
+  limit?: number;
+  includeServiceIds?: string[];
+}
+
+export interface IApaleoNoShowPolicy {
+  id: string;
+  code: string;
+  propertyId: string;
+  name: string;
+  description: string;
+  fee: IApaleoFeeDetailsModel;
+}
+
+export interface IApaleoNoShowPolicyList extends IApaleoPagination {
+  noShowPolicies: IApaleoNoShowPolicy[];
 }

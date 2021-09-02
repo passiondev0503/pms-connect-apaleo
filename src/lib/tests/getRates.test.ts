@@ -1,13 +1,18 @@
 import { createApaleoAdatperInstance } from './helpers';
 
-fit('Get rates from a rate plan', async () => {
-  const apaleo = createApaleoAdatperInstance();
+const requireProps = ['from', 'to', 'price'];
 
-  const ratePlans = await apaleo.getRatePlansByHotelId('BER');
+describe('Rates', () => {
+  test('Get rates from a rate plan', async () => {
+    const apaleo = createApaleoAdatperInstance();
 
-  const rateData = await apaleo.getRatesByRatePlan(ratePlans.data[0]);
+    const ratePlans = await apaleo.getRatePlansByHotelId('BER');
 
-  expect(rateData.data.length).toBe(rateData.count);
-  expect(rateData.data[0]).toHaveProperty('from');
-  expect(rateData.data[0]).toHaveProperty('to');
+    const rateData = await apaleo.getRatesByRatePlan(ratePlans.data[0]);
+
+    expect(rateData.data.length).toBe(rateData.count);
+    requireProps.forEach((prop) => {
+      expect(rateData.data[0]).toHaveProperty(prop);
+    });
+  });
 });

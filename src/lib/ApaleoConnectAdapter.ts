@@ -11,7 +11,6 @@ import {
   IConnected_Account,
   IConnected_Hotel,
   IConnected_RoomType,
-  IConnected_Room
 } from '@cord-travel/pms-connect/dist/models';
 
 import { ApaleoGenerateAccessToken } from './Authorization';
@@ -28,7 +27,10 @@ import {
   IApaleoCancellationPolicyList,
   IApaleoCancellationPolicy,
   IApaleoNoShowPolicyList,
-  IApaleoNoShowPolicy
+  IApaleoNoShowPolicy,
+  IApaleoAgeCategoryList,
+  IApaleoAgeCategory
+
 } from './ApaleoInterfaces';
 import { Config } from './ApaleoConfig';
 
@@ -38,7 +40,8 @@ import {
   convertRatePlanToConnectedRatePlan,
   convertToConnectedRate,
   toConnectedCancellationPolicy,
-  toConnectedNoShowPolicy
+  toConnectedNoShowPolicy,
+  toConnectedAgeCategory
 } from './utils';
 
 interface ApaleoConnectAdaptorOptions {
@@ -52,8 +55,7 @@ interface ApaleoConnectAdaptorOptions {
 
 export class ApaleoConnectAdaptor
   extends RestRequestDriver
-  implements IBaseAdapter
-{
+  implements IBaseAdapter {
   constructor(options: ApaleoConnectAdaptorOptions) {
     const {
       client_id = null,
@@ -89,11 +91,8 @@ export class ApaleoConnectAdaptor
     }
   }
 
-  getRatesByRatePlanId(
-    ratePlanId: Models.ID
-  ): Promise<Models.IConnected_ListOf<Models.IConnected_Rate>> {
-    throw new Error('Method not implemented.');
-  }
+
+
 
   getAuthorizeUrl?(params?: any): string {
     throw new Error('Method not implemented.');
@@ -274,6 +273,12 @@ export class ApaleoConnectAdaptor
   }
 
   // CANCELATION POLICIES
+  /**
+   * Get list of cancellation policies by hotel id
+   * @param hotelId 
+   * @param params 
+   * @returns 
+   */
   async getCancellationPolicies(
     hotelId: Models.ID,
     params: any = {}
@@ -296,6 +301,13 @@ export class ApaleoConnectAdaptor
     };
   }
 
+  /**
+   * Get single cancel policy by id
+   * @param cancellationPolicyId 
+   * @param params 
+   * @returns 
+   */
+
   async getCancellationPolicyById(
     cancellationPolicyId: Models.ID,
     params: any = {}
@@ -307,6 +319,13 @@ export class ApaleoConnectAdaptor
   }
 
   // NO SHOW POLICY
+
+  /**
+   * Get list of No show policies 
+   * @param propertyId 
+   * @param params 
+   * @returns 
+   */
 
   async getNoShowPolicies(
     propertyId: Models.ID,
@@ -326,17 +345,62 @@ export class ApaleoConnectAdaptor
       count: data.count
     };
   }
+
+
+  /**
+   * Get single No show policy
+   * @param noShowPolicyId 
+   * @param params 
+   * @returns 
+   */
   async getNoShowPolicyById(
     noShowPolicyId: Models.ID,
-    parems: any = {}
+    params: any = {}
   ): Promise<Models.IConnected_NoShowPolicy> {
     const { data } = await this.http.get<IApaleoNoShowPolicy>(
-      `/rateplan/v1/no-show-policies/${noShowPolicyId}`
+      `/rateplan/v1/no-show-policies/${noShowPolicyId}`, { params }
     );
     return toConnectedNoShowPolicy(data);
   }
 
+  // AGE CATEGORY 
+
+  async getAgeCategories(hotelId: Models.ID, params?: any): Promise<Models.IConnected_ListOf<Models.IConnected_AgeCategory>> {
+
+    const { data } = await this.http.get<IApaleoAgeCategoryList>(`/settings/v1/age-categories`, {
+      params: {
+        ...params,
+        propertyId: hotelId
+      }
+    })
+
+    return {
+      data: data.ageCategories.map((a) => toConnectedAgeCategory(a)),
+      count: data.count
+    }
+  }
+
+
+  async getAgeCategoryById(ageCategoryId: Models.ID, params?: any): Promise<Models.IConnected_AgeCategory> {
+
+    const { data } = await this.http.get<IApaleoAgeCategory>(`/settings/v1/age-categories/${ageCategoryId}`, {
+      params: {
+        ...params
+      }
+
+    })
+
+    return toConnectedAgeCategory(data)
+  }
+
   // PROMO CODES
+
+  /**
+   * 
+   * @param hotelId 
+   * @param params 
+   * @returns 
+   */
 
   async getPromoCodes(
     hotelId: Models.ID,

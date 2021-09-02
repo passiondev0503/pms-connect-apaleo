@@ -329,3 +329,19 @@ export interface IApaleoNoShowPolicy {
 export interface IApaleoNoShowPolicyList extends IApaleoPagination {
   noShowPolicies: IApaleoNoShowPolicy[];
 }
+
+
+// Age category
+
+export interface IApaleoAgeCategory {
+  id: string
+  code: string
+  propertyId: string
+  minAge: number
+  maxAge: number
+  name: string
+}
+
+export interface IApaleoAgeCategoryList extends IApaleoPagination {
+  ageCategories: IApaleoAgeCategory[]
+}

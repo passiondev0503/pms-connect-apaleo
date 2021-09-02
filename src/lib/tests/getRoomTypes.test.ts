@@ -1,22 +1,40 @@
 import { createApaleoAdatperInstance } from './helpers';
 
-test('get roomtypes from first item of hotel list ', async () => {
-  const apaleo = createApaleoAdatperInstance();
+const requiredProps = [
+  'id',
+  'hotel_id',
+  'code',
+  'name',
+  'description',
+  'max_capacity',
+  'no_of_rooms'
+];
 
-  const hotelData = await apaleo.getHotels();
+describe('Room types', () => {
+  test('get roomtypes from first item of hotel list ', async () => {
+    const apaleo = createApaleoAdatperInstance();
 
-  const roomTypeData = await apaleo.getRoomsTypes(hotelData.data[0].id);
+    const hotelData = await apaleo.getHotels();
 
-  expect(roomTypeData.count).toBe(roomTypeData.data.length);
-});
+    const roomTypeData = await apaleo.getRoomsTypes(hotelData.data[0].id);
 
-test('Get single room type ', async () => {
-  const apaleo = createApaleoAdatperInstance();
-  const hotelData = await apaleo.getHotels();
+    expect(roomTypeData.count).toBe(roomTypeData.data.length);
 
-  const roomTypeListData = await apaleo.getRoomsTypes(hotelData.data[0].id);
+    requiredProps.forEach((prop) => {
+      expect(roomTypeData.data[0]).toHaveProperty(prop);
+    });
+  });
 
-  const roomType = await apaleo.getRoomTypeById(roomTypeListData.data[0].id);
+  test('Get single room type ', async () => {
+    const apaleo = createApaleoAdatperInstance();
+    const hotelData = await apaleo.getHotels();
 
-  expect(roomType).toHaveProperty('name');
+    const roomTypeListData = await apaleo.getRoomsTypes(hotelData.data[0].id);
+
+    const roomType = await apaleo.getRoomTypeById(roomTypeListData.data[0].id);
+
+    requiredProps.forEach((prop) => {
+      expect(roomType).toHaveProperty(prop);
+    });
+  });
 });

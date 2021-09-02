@@ -1,56 +1,87 @@
 import { Models } from '@cord-travel/pms-connect';
 import {
+  IConnected_Hotel,
   IConnected_RatePlan,
-  IConnected_Rate
+  IConnected_Rate,
+  IConnected_CancellationPolicy,
+  IConnected_NoShowPolicy,
+  IConnected_AgeCategory,
+  IConnected_Service
 } from '../../../pms-connect/dist/models';
+import { IMultiLanguageObject } from '../../../pms-connect/dist/shared.models';
 import {
+  IApaleoProperty,
+  IApaleoPropertyItem,
   IApaleoUnitGroup,
   IApaleoRatePlanItem,
   IApaleoRatePlan,
-  IApaleoRate
+  IApaleoRate,
+  IApaleoCancellationPolicy,
+  IApaleoCancellationPolicyItem,
+  IApaleoNoShowPolicy,
+  IApaleoAgeCategory,
+  IApaleoServiceItem,
+  IApaleoService
 } from './ApaleoInterfaces';
-export function convertUnitGroupToRoomType(
+import { IApaleoMultiLangauge } from './common.inerfaces';
+
+function toConnectedLanguage(
+  data: IApaleoMultiLangauge | string
+): IMultiLanguageObject {
+  if (typeof data === 'string') {
+    return {
+      en: data
+    };
+  }
+
+  return data;
+}
+
+export function toConnectedHotel(
+  p: IApaleoProperty | IApaleoPropertyItem
+): IConnected_Hotel {
+  return {
+    id: p.id,
+    name: toConnectedLanguage(p.name),
+    description: toConnectedLanguage(p.description),
+    company_name: p.companyName,
+    currency_code: p.currencyCode,
+    location: {
+      address: `${p.location.addressLine1}, ${p.location.addressLine2}`,
+      postal_code: p.location.postalCode,
+      city: p.location.city,
+      country_code: p.location.countryCode
+    },
+    timezone: p.timeZone,
+    is_active: !p.isArchived
+  };
+}
+
+export function toConnectedRoomType(
   unitGroup: IApaleoUnitGroup
 ): Models.IConnected_RoomType {
   return {
     id: unitGroup.id,
     code: unitGroup.code,
-    name: unitGroup.name,
-    description: unitGroup.description,
+    name: toConnectedLanguage(unitGroup.name),
+    description: toConnectedLanguage(unitGroup.description),
     max_capacity: unitGroup.maxPersons,
     no_of_rooms: unitGroup.memberCount,
-    is_active: true
+    is_active: true,
+    hotel_id: unitGroup.property ? unitGroup.property.id : undefined
   };
 }
 
 // Room rate plan to Connected
 
-export function toConnectedRatePlanItem(
-  rp: IApaleoRatePlanItem
-): Models.IConnected_RatePlanItem {
-  return {
-    id: rp.id,
-    code: rp.code || '',
-    channel_codes: rp.channelCode,
-    is_bookable: rp.isBookable,
-    description: {
-      en: rp.description
-    },
-    name: {
-      en: rp.name
-    },
-    rates_range: rp.ratesRange
-  };
-}
-
-export function convertRatePlanToConnectedRatePlan(
-  rp: IApaleoRatePlan
+export function toConnectedRatePaln(
+  rp: IApaleoRatePlan | IApaleoRatePlanItem
 ): IConnected_RatePlan {
   return {
     id: rp.id,
     code: rp.code,
-    name: rp.name,
-    description: rp.description,
+    name: toConnectedLanguage(rp.name),
+    description: toConnectedLanguage(rp.description),
     rates_range: rp.ratesRange,
     channel_codes: rp.channelCodes,
     minimum_guarantee_type: rp.minGuaranteeType,
@@ -59,12 +90,17 @@ export function convertRatePlanToConnectedRatePlan(
           id: rp.cancellationPolicy.id,
 
           name: {
-            en: <string>rp.cancellationPolicy.name
+            en:
+              typeof rp.cancellationPolicy.name === 'string'
+                ? rp.cancellationPolicy.name
+                : ''
           },
           description: {
-            en: <string>rp.cancellationPolicy.description
-          },
-          period_prior_to_arrival: rp.cancellationPolicy.periodPriorToArrival
+            en:
+              typeof rp.cancellationPolicy.description === 'string'
+                ? rp.cancellationPolicy.description
+                : ''
+          }
         }
       : undefined,
     no_show_policy: rp.noShowPolicy
@@ -98,9 +134,7 @@ export function convertRatePlanToConnectedRatePlan(
       ? {
           type: rp.pricingRule.type,
           value: rp.pricingRule.value,
-          baseRatePlan: convertRatePlanToConnectedRatePlan(
-            rp.pricingRule.baseRatePlan
-          )
+          baseRatePlan: toConnectedRatePaln(rp.pricingRule.baseRatePlan)
         }
       : undefined,
     age_categories: rp.ageCategories
@@ -160,5 +194,77 @@ export function convertToConnectedRate(rate: IApaleoRate): IConnected_Rate {
           min_length_of_stay: rate.restrictions.minLengthOfStay
         }
       : undefined
+  };
+}
+
+export function toConnectedCancellationPolicy(
+  cp: IApaleoCancellationPolicy | IApaleoCancellationPolicyItem
+): IConnected_CancellationPolicy {
+  return {
+    id: cp.id,
+    code: cp.code,
+    hotel_id: cp.propertyId,
+    name: toConnectedLanguage(cp.name),
+    description: toConnectedLanguage(cp.description),
+    period_from_reference: cp.periodFromReference,
+    fee: cp.fee
+      ? {
+          vat_type: cp.fee.vatType,
+          fixed_value: cp.fee.fixedValue,
+          percent_value: cp.fee.percentValue
+        }
+      : undefined,
+    reference: cp.reference
+  };
+}
+
+export function toConnectedNoShowPolicy(
+  nsp: IApaleoNoShowPolicy
+): IConnected_NoShowPolicy {
+  const { fee = undefined, id, name, description, code, propertyId } = nsp;
+  return {
+    id,
+    code,
+    hotel_id: propertyId,
+    name: toConnectedLanguage(name),
+    description: toConnectedLanguage(description),
+    fee: fee
+      ? {
+          vat_type: fee.vatType,
+          fixed_value: fee.fixedValue,
+          percent_value: fee.percentValue
+        }
+      : undefined
+  };
+}
+
+export function toConnectedAgeCategory(
+  ac: IApaleoAgeCategory
+): IConnected_AgeCategory {
+  return {
+    id: ac.id,
+    code: ac.code || '',
+    hotel_id: ac.propertyId,
+    name: {
+      en: ac.name
+    },
+    min_age: ac.minAge,
+    max_age: ac.maxAge
+  };
+}
+
+export function toConnectedService(
+  s: IApaleoServiceItem | IApaleoService
+): IConnected_Service {
+  return {
+    id: s.id,
+    code: s.code,
+    default_gross_price: s.defaultGrossPrice,
+    name: toConnectedLanguage(s.name),
+    description: toConnectedLanguage(s.description),
+    channel_codes: s.channelCodes,
+    availability_mode: s.availability ? s.availability.mode : '',
+    pricing_unit: s.pricingUnit || '',
+    service_type: s.serviceType || ''
   };
 }

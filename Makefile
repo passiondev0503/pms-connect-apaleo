@@ -1,11 +1,12 @@
 build:
-	rm -fr ./dist
 	npx tsc
 
 test:
-
 	npm run test
 
-publish: test build
+clean:
+	rm -rf ./dist
+
+publish: test clean build
 	npm publish
 

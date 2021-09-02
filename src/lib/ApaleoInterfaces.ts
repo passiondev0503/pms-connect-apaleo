@@ -168,33 +168,9 @@ export interface IApaleoRatePlanList extends IApaleoPagination {
   ratePlans: IApaleoRatePlanItem[];
 }
 
-export interface IApaleoRatePlanItem {
-  id: string;
-  code?: string;
-  name: string;
-  description: string;
-  channelCode: APALEO_CHANNEL_CODES[]; //
-  isBookable: boolean;
-  minGuaranteeType: APALEO_MIN_GUARANTEE_TYPE[];
-  priceCalculationMode?: APALEO_PRICE_CALCULATION_MODE[];
-  isSubjectToCityTax: boolean;
-  cancellationPolicy: IApaleoCancellationPolicyItem;
-  noShowPolicy: IApaleoNoShowPolicyItem;
-  timeSliceDefinition: IApaleoTimeSliceDefinition;
-  bookingPeriods?: IApaleoBookingPeriodModel;
-  ratesRange?: IApaleoRatesRangeModel;
-  promoCodes?: string[];
-  surcharges?: IApaleoSurchargeModel[];
-  restrictions: IApaleoBookingRestrictionsModel;
-  pricingRule?: IApaleoPricingRuleModel;
-  ageCategories?: IApaleoRatePlanAgeCategoryModel[];
-  includedServices?: IApaleoRatePlanServiceModel[];
-}
-export interface IApaleoRatePlan {
+interface IApaleo_Base_RatePlan {
   id: string;
   code: string;
-  name: IApaleoMultiLangauge;
-  description: IApaleoMultiLangauge;
   channelCodes: APALEO_CHANNEL_CODES[]; //
   isBookable: boolean;
   minGuaranteeType: APALEO_MIN_GUARANTEE_TYPE[];
@@ -211,6 +187,16 @@ export interface IApaleoRatePlan {
   pricingRule?: IApaleoPricingRuleModel;
   ageCategories?: IApaleoRatePlanAgeCategoryModel[];
   includedServices?: IApaleoRatePlanServiceModel[];
+}
+
+export interface IApaleoRatePlan extends IApaleo_Base_RatePlan {
+  name: IApaleoMultiLangauge;
+  description: IApaleoMultiLangauge;
+}
+
+export interface IApaleoRatePlanItem extends IApaleo_Base_RatePlan {
+  name: string;
+  description: string;
 }
 
 export interface IApaleoNoShowPolicyItem {
@@ -328,4 +314,64 @@ export interface IApaleoNoShowPolicy {
 
 export interface IApaleoNoShowPolicyList extends IApaleoPagination {
   noShowPolicies: IApaleoNoShowPolicy[];
+}
+
+// Age category
+
+export interface IApaleoAgeCategory {
+  id: string;
+  code: string;
+  propertyId: string;
+  minAge: number;
+  maxAge: number;
+  name: string;
+}
+
+export interface IApaleoAgeCategoryList extends IApaleoPagination {
+  ageCategories: IApaleoAgeCategory[];
+}
+
+// Services
+
+enum APALEO_SERVICE_PRICING_UNIT {
+  Room = 'Room',
+  Person = 'Person'
+}
+
+enum APALEO_SERVICE_TYPES {
+  Other = 'Other',
+  Accommodation = 'Accommodation',
+  FoodAndBeverages = 'Accommodation'
+}
+interface IApaleo_Base_Service {
+  id: string;
+  code: string;
+  defaultGrossPrice: IApaleoMonetaryValue;
+  pricingUnit: APALEO_SERVICE_PRICING_UNIT;
+  availability: ApaleoEmbed_AvailabilityModel;
+  channelCodes: APALEO_CHANNEL_CODES[];
+  serviceType: APALEO_SERVICE_TYPES;
+}
+
+export interface IApaleoServiceItem extends IApaleo_Base_Service {
+  name: string;
+  description: string;
+}
+
+export interface IApaleoService extends IApaleo_Base_Service {
+  name: IApaleoMultiLangauge;
+  description: IApaleoMultiLangauge;
+}
+export interface IApaleoServiceList extends IApaleoPagination {
+  services: IApaleoServiceItem[];
+}
+
+enum APALEO_SERVICE_AVAILABILITY_MODE {
+  Arrival = 'Arrival',
+  Departure = 'Departure',
+  Daily = 'Daily'
+}
+
+interface ApaleoEmbed_AvailabilityModel {
+  mode: APALEO_SERVICE_AVAILABILITY_MODE;
 }

@@ -31,7 +31,7 @@ import {
   IApaleoAgeCategoryList,
   IApaleoAgeCategory,
   IApaleoServiceList,
-  IApaleoService
+  IApaleoService, IApaleo_Availibility_UnitType_Response
 } from './ApaleoInterfaces';
 import { Config } from './ApaleoConfig';
 
@@ -43,8 +43,14 @@ import {
   toConnectedCancellationPolicy,
   toConnectedNoShowPolicy,
   toConnectedAgeCategory,
-  toConnectedService
+  toConnectedService,
+  toConnectedRoomTypeAvailibilityResponse
 } from './utils';
+import { IConnected_DateRange } from '../../../pms-connect/dist/shared.models';
+
+const defaultLanguageParams = {
+  languages: "all"
+}
 
 interface ApaleoConnectAdaptorOptions {
   refresh_token: ITokenValue;
@@ -57,8 +63,7 @@ interface ApaleoConnectAdaptorOptions {
 
 export class ApaleoConnectAdaptor
   extends RestRequestDriver
-  implements IBaseAdapter
-{
+  implements IBaseAdapter {
   constructor(options: ApaleoConnectAdaptorOptions) {
     const {
       client_id = null,
@@ -93,6 +98,7 @@ export class ApaleoConnectAdaptor
       this.setTokenStore(options.tokenStore);
     }
   }
+
 
   getAuthorizeUrl?(params?: any): string {
     throw new Error('Method not implemented.');
@@ -140,7 +146,11 @@ export class ApaleoConnectAdaptor
   async getHotelById(id: ID, params = {}): Promise<IConnected_Hotel> {
     const { data } = await this.http.get<IApaleoProperty>(
       `/inventory/v1/properties/${id}`,
-      { params }
+      {
+        params: {
+          ...defaultLanguageParams, ...params
+        }
+      }
     );
 
     return toConnectedHotel(data);
@@ -172,9 +182,14 @@ export class ApaleoConnectAdaptor
     };
   }
 
-  async getRoomTypeById(roomTypeId: ID): Promise<Models.IConnected_RoomType> {
+  async getRoomTypeById(roomTypeId: ID, params: any = {}): Promise<Models.IConnected_RoomType> {
     const res = await this.http.get<IApaleoUnitGroup>(
-      `/inventory/v1/unit-groups/${roomTypeId}`
+      `/inventory/v1/unit-groups/${roomTypeId}`, {
+      params: {
+        ...defaultLanguageParams,
+        ...params
+      }
+    }
     );
 
     return toConnectedRoomType(res.data);
@@ -223,7 +238,12 @@ export class ApaleoConnectAdaptor
   ): Promise<Models.IConnected_RatePlan> {
     const { data } = await this.http.get<IApaleoRatePlan>(
       `/rateplan/v1/rate-plans/${ratePlanId}`,
-      { params }
+      {
+        params: {
+          ...defaultLanguageParams,
+          ...params
+        }
+      }
     );
 
     return toConnectedRatePaln(data);
@@ -300,7 +320,12 @@ export class ApaleoConnectAdaptor
     params: any = {}
   ): Promise<Models.IConnected_CancellationPolicy> {
     const { data } = await this.http.get<IApaleoCancellationPolicy>(
-      `/rateplan/v1/cancellation-policies/${cancellationPolicyId}`
+      `/rateplan/v1/cancellation-policies/${cancellationPolicyId}`, {
+      params: {
+        ...defaultLanguageParams,
+        ...params
+      }
+    }
     );
     return toConnectedCancellationPolicy(data);
   }
@@ -345,7 +370,12 @@ export class ApaleoConnectAdaptor
   ): Promise<Models.IConnected_NoShowPolicy> {
     const { data } = await this.http.get<IApaleoNoShowPolicy>(
       `/rateplan/v1/no-show-policies/${noShowPolicyId}`,
-      { params }
+      {
+        params: {
+          ...defaultLanguageParams,
+          ...params
+        }
+      }
     );
     return toConnectedNoShowPolicy(data);
   }
@@ -380,6 +410,7 @@ export class ApaleoConnectAdaptor
       `/settings/v1/age-categories/${ageCategoryId}`,
       {
         params: {
+          ...defaultLanguageParams,
           ...params
         }
       }
@@ -413,7 +444,12 @@ export class ApaleoConnectAdaptor
     params: any = {}
   ): Promise<Models.IConnected_Service> {
     const { data } = await this.http.get<IApaleoService>(
-      `/rateplan/v1/services/${serviceId}`
+      `/rateplan/v1/services/${serviceId}`, {
+      params: {
+        ...defaultLanguageParams,
+        ...params
+      }
+    }
     );
 
     return toConnectedService(data);
@@ -456,5 +492,26 @@ export class ApaleoConnectAdaptor
       data: promoCodes,
       count: data.count
     };
+  }
+
+  /**
+   * Get room type availability
+   * @param hotel_id 
+   * @param dateRange 
+   * @param params 
+   * @returns 
+   */
+
+  async getAvaialability(hotel_id: Models.ID, dateRange: IConnected_DateRange, params: any = {}): Promise<Models.IConnected_RoomType_AvailabilityResponse> {
+    const { data } = await this.http.get<IApaleo_Availibility_UnitType_Response>(`/availability/v1/unit-groups`, {
+      params: {
+        ...params,
+        ...dateRange,
+        propertyId: hotel_id
+      }
+    })
+
+    console
+    return toConnectedRoomTypeAvailibilityResponse(data)
   }
 }

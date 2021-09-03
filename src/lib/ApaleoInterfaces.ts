@@ -375,3 +375,51 @@ enum APALEO_SERVICE_AVAILABILITY_MODE {
 interface ApaleoEmbed_AvailabilityModel {
   mode: APALEO_SERVICE_AVAILABILITY_MODE;
 }
+
+
+// Availibility Response
+
+export interface IApaleo_Availibility_UnitType_Response {
+  timeSlices: IApaleo_UnitType_Availability_TimeSlice[]
+}
+
+export interface IApaleo_UnitType_Availability_TimeSlice {
+  from: string
+  to: string
+  property: IApaleo_AvailabilityValues
+  unitGroups: IApaleo_Avalibility_UnitGroupValues[]
+}
+
+export
+  interface IApaleo_AvailabilityValues {
+  physicalCount: number
+  houseCount: number
+  soldCount: number
+  occupancy: number
+  sellableCount: number
+  allowedOverbookingCount: number
+  maintenance: IApaleo_AvailibilityMaintenanceValues,
+  block: IApaleo_AvailibilityBlockValues
+}
+
+interface IApaleo_AvailibilityMaintenanceValues {
+  outOfService: number
+  outOfOrder: number
+  outOfInventory: number
+}
+interface IApaleo_AvailibilityBlockValues {
+  definite: number
+  tentative: number
+  picked: number
+  remaining: number
+}
+
+export interface IApaleo_Avalibility_UnitGroupValues extends IApaleo_AvailabilityValues {
+  unitGroup: IApaleo_AvalibilityEmbededUnitType
+}
+interface IApaleo_AvalibilityEmbededUnitType {
+  id: string
+  code: string
+  name: string
+  description: string
+}

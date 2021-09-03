@@ -6,7 +6,10 @@ import {
   IConnected_CancellationPolicy,
   IConnected_NoShowPolicy,
   IConnected_AgeCategory,
-  IConnected_Service
+  IConnected_Service,
+  IConnected_RoomType_AvailabilityResponse,
+  IConnected_AvailabilityRoomTypeValues,
+  IConnected_AvailabilityValues
 } from '../../../pms-connect/dist/models';
 import { IMultiLanguageObject } from '../../../pms-connect/dist/shared.models';
 import {
@@ -21,7 +24,10 @@ import {
   IApaleoNoShowPolicy,
   IApaleoAgeCategory,
   IApaleoServiceItem,
-  IApaleoService
+  IApaleoService,
+  IApaleo_Availibility_UnitType_Response,
+  IApaleo_Avalibility_UnitGroupValues,
+  IApaleo_AvailabilityValues
 } from './ApaleoInterfaces';
 import { IApaleoMultiLangauge } from './common.inerfaces';
 
@@ -87,73 +93,73 @@ export function toConnectedRatePaln(
     minimum_guarantee_type: rp.minGuaranteeType,
     cancellation_policy: rp.cancellationPolicy
       ? {
-          id: rp.cancellationPolicy.id,
+        id: rp.cancellationPolicy.id,
 
-          name: {
-            en:
-              typeof rp.cancellationPolicy.name === 'string'
-                ? rp.cancellationPolicy.name
-                : ''
-          },
-          description: {
-            en:
-              typeof rp.cancellationPolicy.description === 'string'
-                ? rp.cancellationPolicy.description
-                : ''
-          }
+        name: {
+          en:
+            typeof rp.cancellationPolicy.name === 'string'
+              ? rp.cancellationPolicy.name
+              : ''
+        },
+        description: {
+          en:
+            typeof rp.cancellationPolicy.description === 'string'
+              ? rp.cancellationPolicy.description
+              : ''
         }
+      }
       : undefined,
     no_show_policy: rp.noShowPolicy
       ? {
-          id: rp.noShowPolicy.id,
-          name: {
-            en: <string>rp.noShowPolicy.name
-          },
-          description: {
-            en: <string>rp.noShowPolicy.description
-          }
+        id: rp.noShowPolicy.id,
+        name: {
+          en: <string>rp.noShowPolicy.name
+        },
+        description: {
+          en: <string>rp.noShowPolicy.description
         }
+      }
       : undefined,
     time_slice_definition: rp.timeSliceDefinition
       ? {
-          id: rp.timeSliceDefinition.id,
-          name: rp.timeSliceDefinition.name,
-          description: rp.timeSliceDefinition.description,
-          check_in_time: rp.timeSliceDefinition.checkInTime,
-          check_out_time: rp.timeSliceDefinition.checkOutTime
-        }
+        id: rp.timeSliceDefinition.id,
+        name: rp.timeSliceDefinition.name,
+        description: rp.timeSliceDefinition.description,
+        check_in_time: rp.timeSliceDefinition.checkInTime,
+        check_out_time: rp.timeSliceDefinition.checkOutTime
+      }
       : undefined,
     restrictions: rp.restrictions
       ? {
-          late_booking_until: rp.restrictions.lateBookingUntil,
-          min_advance: rp.restrictions.minAdvance,
-          max_advance: rp.restrictions.maxAdvance
-        }
+        late_booking_until: rp.restrictions.lateBookingUntil,
+        min_advance: rp.restrictions.minAdvance,
+        max_advance: rp.restrictions.maxAdvance
+      }
       : undefined,
     pricing_rule: rp.pricingRule
       ? {
-          type: rp.pricingRule.type,
-          value: rp.pricingRule.value,
-          baseRatePlan: toConnectedRatePaln(rp.pricingRule.baseRatePlan)
-        }
+        type: rp.pricingRule.type,
+        value: rp.pricingRule.value,
+        baseRatePlan: toConnectedRatePaln(rp.pricingRule.baseRatePlan)
+      }
       : undefined,
     age_categories: rp.ageCategories
       ? rp.ageCategories.map((ac) => ({
-          id: ac.id,
-          surcharges: ac.surcharges.map((sc) => {
-            return {
-              value: sc.value,
-              adults: sc.adults
-            };
-          })
-        }))
+        id: ac.id,
+        surcharges: ac.surcharges.map((sc) => {
+          return {
+            value: sc.value,
+            adults: sc.adults
+          };
+        })
+      }))
       : [],
     included_services: rp.includedServices
       ? rp.includedServices.map((is) => ({
-          service_id: is.serviceId,
-          gross_price: is.grossPrice,
-          pricing_mode: is.pricingMode
-        }))
+        service_id: is.serviceId,
+        gross_price: is.grossPrice,
+        pricing_mode: is.pricingMode
+      }))
       : [],
     is_bookable: rp.isBookable,
     promo_codes: rp.promoCodes,
@@ -162,10 +168,10 @@ export function toConnectedRatePaln(
     price_calculation_mode: rp.priceCalculationMode,
     surcharges: rp.surcharges
       ? rp.surcharges.map((sc) => ({
-          adults: sc.adults,
-          value: sc.value
-          // type: sc.type
-        }))
+        adults: sc.adults,
+        value: sc.value
+        // type: sc.type
+      }))
       : []
   };
 }
@@ -177,22 +183,22 @@ export function convertToConnectedRate(rate: IApaleoRate): IConnected_Rate {
     price: rate.price || undefined,
     calculated_prices: rate.calculatedPrices
       ? rate.calculatedPrices.map((cp) => ({
-          adults: cp.adults,
-          price: cp.price,
-          included_services_price: cp.includedServicesPrice
-        }))
+        adults: cp.adults,
+        price: cp.price,
+        included_services_price: cp.includedServicesPrice
+      }))
       : [],
     included_services_price: rate.includedServicesPrice
       ? rate.includedServicesPrice
       : undefined,
     restrictions: rate.restrictions
       ? {
-          closed: rate.restrictions.closed,
-          closed_on_arrival: rate.restrictions.closedOnArrival,
-          closed_on_departure: rate.restrictions.closedOnDeparture,
-          max_length_of_stay: rate.restrictions.maxLengthOfStay,
-          min_length_of_stay: rate.restrictions.minLengthOfStay
-        }
+        closed: rate.restrictions.closed,
+        closed_on_arrival: rate.restrictions.closedOnArrival,
+        closed_on_departure: rate.restrictions.closedOnDeparture,
+        max_length_of_stay: rate.restrictions.maxLengthOfStay,
+        min_length_of_stay: rate.restrictions.minLengthOfStay
+      }
       : undefined
   };
 }
@@ -209,10 +215,10 @@ export function toConnectedCancellationPolicy(
     period_from_reference: cp.periodFromReference,
     fee: cp.fee
       ? {
-          vat_type: cp.fee.vatType,
-          fixed_value: cp.fee.fixedValue,
-          percent_value: cp.fee.percentValue
-        }
+        vat_type: cp.fee.vatType,
+        fixed_value: cp.fee.fixedValue,
+        percent_value: cp.fee.percentValue
+      }
       : undefined,
     reference: cp.reference
   };
@@ -230,10 +236,10 @@ export function toConnectedNoShowPolicy(
     description: toConnectedLanguage(description),
     fee: fee
       ? {
-          vat_type: fee.vatType,
-          fixed_value: fee.fixedValue,
-          percent_value: fee.percentValue
-        }
+        vat_type: fee.vatType,
+        fixed_value: fee.fixedValue,
+        percent_value: fee.percentValue
+      }
       : undefined
   };
 }
@@ -267,4 +273,54 @@ export function toConnectedService(
     pricing_unit: s.pricingUnit || '',
     service_type: s.serviceType || ''
   };
+}
+
+
+// Availibility
+
+export function toConnectedRoomTypeAvailibilityResponse(r: IApaleo_Availibility_UnitType_Response): IConnected_RoomType_AvailabilityResponse {
+
+
+
+  return {
+    time_slices: r.timeSlices.map(t => ({
+      from: t.from,
+      to: t.to,
+      total: toConnectedAvailibiltyValues(t.property),
+      room_types: t.unitGroups.map(ug => toConnectedRoomTypeAvailabilityValues(ug))
+    }))
+  }
+}
+
+
+function toConnectedRoomTypeAvailabilityValues(uv: IApaleo_Avalibility_UnitGroupValues): IConnected_AvailabilityRoomTypeValues {
+
+  return {
+    room_type: {
+      id: uv.unitGroup.id,
+      code: uv.unitGroup.code,
+      name: toConnectedLanguage(uv.unitGroup.name),
+      description: toConnectedLanguage(uv.unitGroup.description)
+    },
+    ...toConnectedAvailibiltyValues(uv)
+  }
+}
+
+
+function toConnectedAvailibiltyValues(av: IApaleo_AvailabilityValues): IConnected_AvailabilityValues {
+  return {
+
+    house_count: av.houseCount,
+    physical_count: av.physicalCount,
+    sellable_count: av.sellableCount,
+    block: av.block,
+    allowed_overbooking_count: av.allowedOverbookingCount,
+    occupancy: av.occupancy,
+    sold_count: av.soldCount,
+    maintenance: {
+      out_of_service: av.maintenance.outOfService,
+      out_of_inventory: av.maintenance.outOfInventory,
+      out_of_order: av.maintenance.outOfOrder
+    }
+  }
 }

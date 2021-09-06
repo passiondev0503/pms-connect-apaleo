@@ -33,6 +33,7 @@ import {
   IApaleoServiceList,
   IApaleoService, IApaleo_Availibility_UnitType_Response
 } from './ApaleoInterfaces';
+import { IApaleo_Subscription_Body, IApaleo_Subscription_Response } from './apaleo.subscriptions'
 import { Config } from './ApaleoConfig';
 
 import {
@@ -64,6 +65,8 @@ interface ApaleoConnectAdaptorOptions {
 export class ApaleoConnectAdaptor
   extends RestRequestDriver
   implements IBaseAdapter {
+
+
   constructor(options: ApaleoConnectAdaptorOptions) {
     const {
       client_id = null,
@@ -79,7 +82,7 @@ export class ApaleoConnectAdaptor
       refreshToken: refresh_token,
       accessToken: access_token || '',
       baseUrl: Config.API_BASE_URL,
-      generteAccessToken: async (token: string) => {
+      generteAccessToken: async () => {
         const data = await ApaleoGenerateAccessToken({
           client_secret,
           client_id,
@@ -98,6 +101,11 @@ export class ApaleoConnectAdaptor
       this.setTokenStore(options.tokenStore);
     }
   }
+
+  get name(): string {
+    return 'apaleo'
+  }
+
 
 
   getAuthorizeUrl?(params?: any): string {
@@ -513,5 +521,59 @@ export class ApaleoConnectAdaptor
 
     console
     return toConnectedRoomTypeAvailibilityResponse(data)
+  }
+
+
+  // Web hooks
+
+  async webhooksList(): Promise<Models.IConnected_WebHookDefinition[]> {
+    const { data } = await this.http.get<IApaleo_Subscription_Response[]>(`/v1/subscriptions`, {
+      baseURL: "https://webhook.apaleo.com"
+    })
+
+    if (data) {
+      return data.map(d => ({ id: d.id, end_point_url: d.endpointUrl, hotel_ids: d.propertyIds, topics: d.topics }))
+    }
+    return []
+  }
+
+  async webhooksCreate(webhookDefinition: Models.IConnected_WebHookDefinition): Promise<Models.ID> {
+    let body: IApaleo_Subscription_Body = {
+      endpointUrl: webhookDefinition.end_point_url || '',
+      propertyIds: webhookDefinition.hotel_ids || [],
+      topics: webhookDefinition.topics || []
+
+    }
+
+    console.log('body ', body)
+    const { data } = await this.http.post<IApaleo_Subscription_Response>(`/v1/subscriptions`, body, {
+      baseURL: "https://webhook.apaleo.com",
+      // headers: {
+      //   'Content-Type': 'application/x-www-form-urlencoded'
+      // },
+    })
+    return data.id
+  }
+  async webhooksUpdate(id: Models.ID, webhookDefinition: Models.IConnected_WebHookDefinition): Promise<Models.ID> {
+
+    let body: IApaleo_Subscription_Body = {
+      endpointUrl: webhookDefinition.end_point_url || '',
+      propertyIds: webhookDefinition.hotel_ids || [],
+      topics: webhookDefinition.topics || []
+
+    }
+
+    console.log('Req body ', body)
+    await this.http.put(`/v1/subscriptions/${id}`, body, {
+      baseURL: "https://webhook.apaleo.com"
+    })
+    return id
+  }
+  async webhooksDelete(webHookId: Models.ID): Promise<ID> {
+    await this.http.delete(`/v1/subscriptions/${webHookId}`, {
+      baseURL: "https://webhook.apaleo.com"
+    })
+
+    return webHookId
   }
 }

@@ -545,7 +545,7 @@ export class ApaleoConnectAdaptor
 
     }
 
-    console.log('body ', body)
+
     const { data } = await this.http.post<IApaleo_Subscription_Response>(`/v1/subscriptions`, body, {
       baseURL: "https://webhook.apaleo.com",
       // headers: {
@@ -563,7 +563,7 @@ export class ApaleoConnectAdaptor
 
     }
 
-    console.log('Req body ', body)
+
     await this.http.put(`/v1/subscriptions/${id}`, body, {
       baseURL: "https://webhook.apaleo.com"
     })

@@ -4,38 +4,39 @@ describe("Webhooks ", () => {
 
 
 
-    // test("list webhook", async () => {
-    //     const apaleo = createApaleoAdatperInstance()
-    //     const webhooks = await apaleo.webhooksList()
+    test(" webhook create/list/update/delete", async () => {
 
-    //     console.log('webhooks ', webhooks)
-    // })
+        // create 
 
-    // test("create webhook", async () => {
-
-    //     const apaleo = createApaleoAdatperInstance()
-    //     await apaleo.webhooksCreate({
-    //         end_point_url: "https://hookb.in/YVDBNJZ1NktQERGGE9BN",
-    //         hotel_ids: ["BER"],
-    //         topics: [
-    //             "RatePlan", "UnitGroup"
-    //         ]
-    //     }).catch((e: AxiosError) => {
-    //         console.log(e.response)
-    //         console.log()
-    //     })
-
-    // })
-
-    test("update webhook ", async () => {
+        let endPoint = "https://webhook-data-console.vercel.app/api/webhooks/one"
 
         const apaleo = createApaleoAdatperInstance()
+        let whId = await apaleo.webhooksCreate({
+            end_point_url: endPoint, //"https://hookb.in/YVDBNJZ1NktQERGGE9BN",
+            hotel_ids: ["BER"],
+            topics: [
+                "Property"//"RatePlan", "UnitGroup"
+            ]
+        }).catch((e: AxiosError) => {
+            console.log(e.response)
+            console.log()
+        })
+
+        expect(whId).toBeTruthy()
+
+
+        // List
 
         const webhooks = await apaleo.webhooksList()
 
 
-        await apaleo.webhooksUpdate(webhooks[0].id, {
-            end_point_url: "https://hookb.in/YVDBNJZ1NktQERGGE9BN",
+
+        // Update
+
+        let testWebHook = webhooks.find(w => w.id === whId)
+
+        const upWhId = await apaleo.webhooksUpdate(testWebHook.id, {
+            end_point_url: endPoint,
             hotel_ids: ["BER"],
             topics: [
                 "RatePlan", "UnitGroup", "Reservation"
@@ -45,18 +46,9 @@ describe("Webhooks ", () => {
             console.log(e.response)
         })
 
+        expect(upWhId).toBe(whId)
 
+        await apaleo.webhooksDelete(testWebHook.id)
     })
-
-    // test("Delete webhook", async () => {
-
-    //     // let id = "e77a35be-ca99-4ecd-897f-a9873f86b342"
-
-    //     const apaleo = createApaleoAdatperInstance()
-
-    //     await apaleo.webhooksDelete(id)
-
-
-    // })
 
 })

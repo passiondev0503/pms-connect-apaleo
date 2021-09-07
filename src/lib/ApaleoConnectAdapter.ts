@@ -31,8 +31,9 @@ import {
   IApaleoAgeCategoryList,
   IApaleoAgeCategory,
   IApaleoServiceList,
-  IApaleoService
+  IApaleoService, IApaleo_Availibility_UnitType_Response
 } from './ApaleoInterfaces';
+import { IApaleo_Subscription_Body, IApaleo_Subscription_Response } from './apaleo.subscriptions'
 import { Config } from './ApaleoConfig';
 
 import {
@@ -43,8 +44,14 @@ import {
   toConnectedCancellationPolicy,
   toConnectedNoShowPolicy,
   toConnectedAgeCategory,
-  toConnectedService
+  toConnectedService,
+  toConnectedRoomTypeAvailibilityResponse
 } from './utils';
+import { IConnected_DateRange } from '../../../pms-connect/dist/shared.models';
+
+const defaultLanguageParams = {
+  languages: "all"
+}
 
 interface ApaleoConnectAdaptorOptions {
   refresh_token: ITokenValue;
@@ -57,8 +64,9 @@ interface ApaleoConnectAdaptorOptions {
 
 export class ApaleoConnectAdaptor
   extends RestRequestDriver
-  implements IBaseAdapter
-{
+  implements IBaseAdapter {
+
+
   constructor(options: ApaleoConnectAdaptorOptions) {
     const {
       client_id = null,
@@ -74,7 +82,7 @@ export class ApaleoConnectAdaptor
       refreshToken: refresh_token,
       accessToken: access_token || '',
       baseUrl: Config.API_BASE_URL,
-      generteAccessToken: async (token: string) => {
+      generteAccessToken: async () => {
         const data = await ApaleoGenerateAccessToken({
           client_secret,
           client_id,
@@ -93,6 +101,12 @@ export class ApaleoConnectAdaptor
       this.setTokenStore(options.tokenStore);
     }
   }
+
+  get name(): string {
+    return 'apaleo'
+  }
+
+
 
   getAuthorizeUrl?(params?: any): string {
     throw new Error('Method not implemented.');
@@ -140,7 +154,11 @@ export class ApaleoConnectAdaptor
   async getHotelById(id: ID, params = {}): Promise<IConnected_Hotel> {
     const { data } = await this.http.get<IApaleoProperty>(
       `/inventory/v1/properties/${id}`,
-      { params }
+      {
+        params: {
+          ...defaultLanguageParams, ...params
+        }
+      }
     );
 
     return toConnectedHotel(data);
@@ -149,7 +167,7 @@ export class ApaleoConnectAdaptor
   // ROOM TYPES
 
   async getRoomsTypes(
-    hotelId: string | number,
+    hotelId: ID,
     params: any = {}
   ): Promise<IConnected_ListOf<IConnected_RoomType>> {
     const { data } = await this.http.get<IApaleoUnitGroupList>(
@@ -172,9 +190,14 @@ export class ApaleoConnectAdaptor
     };
   }
 
-  async getRoomTypeById(roomTypeId: ID): Promise<Models.IConnected_RoomType> {
+  async getRoomTypeById(roomTypeId: ID, params: any = {}): Promise<Models.IConnected_RoomType> {
     const res = await this.http.get<IApaleoUnitGroup>(
-      `/inventory/v1/unit-groups/${roomTypeId}`
+      `/inventory/v1/unit-groups/${roomTypeId}`, {
+      params: {
+        ...defaultLanguageParams,
+        ...params
+      }
+    }
     );
 
     return toConnectedRoomType(res.data);
@@ -223,7 +246,12 @@ export class ApaleoConnectAdaptor
   ): Promise<Models.IConnected_RatePlan> {
     const { data } = await this.http.get<IApaleoRatePlan>(
       `/rateplan/v1/rate-plans/${ratePlanId}`,
-      { params }
+      {
+        params: {
+          ...defaultLanguageParams,
+          ...params
+        }
+      }
     );
 
     return toConnectedRatePaln(data);
@@ -300,7 +328,12 @@ export class ApaleoConnectAdaptor
     params: any = {}
   ): Promise<Models.IConnected_CancellationPolicy> {
     const { data } = await this.http.get<IApaleoCancellationPolicy>(
-      `/rateplan/v1/cancellation-policies/${cancellationPolicyId}`
+      `/rateplan/v1/cancellation-policies/${cancellationPolicyId}`, {
+      params: {
+        ...defaultLanguageParams,
+        ...params
+      }
+    }
     );
     return toConnectedCancellationPolicy(data);
   }
@@ -345,7 +378,12 @@ export class ApaleoConnectAdaptor
   ): Promise<Models.IConnected_NoShowPolicy> {
     const { data } = await this.http.get<IApaleoNoShowPolicy>(
       `/rateplan/v1/no-show-policies/${noShowPolicyId}`,
-      { params }
+      {
+        params: {
+          ...defaultLanguageParams,
+          ...params
+        }
+      }
     );
     return toConnectedNoShowPolicy(data);
   }
@@ -380,6 +418,7 @@ export class ApaleoConnectAdaptor
       `/settings/v1/age-categories/${ageCategoryId}`,
       {
         params: {
+          ...defaultLanguageParams,
           ...params
         }
       }
@@ -413,7 +452,12 @@ export class ApaleoConnectAdaptor
     params: any = {}
   ): Promise<Models.IConnected_Service> {
     const { data } = await this.http.get<IApaleoService>(
-      `/rateplan/v1/services/${serviceId}`
+      `/rateplan/v1/services/${serviceId}`, {
+      params: {
+        ...defaultLanguageParams,
+        ...params
+      }
+    }
     );
 
     return toConnectedService(data);
@@ -456,5 +500,80 @@ export class ApaleoConnectAdaptor
       data: promoCodes,
       count: data.count
     };
+  }
+
+  /**
+   * Get room type availability
+   * @param hotel_id 
+   * @param dateRange 
+   * @param params 
+   * @returns 
+   */
+
+  async getAvaialability(hotel_id: Models.ID, dateRange: IConnected_DateRange, params: any = {}): Promise<Models.IConnected_RoomType_AvailabilityResponse> {
+    const { data } = await this.http.get<IApaleo_Availibility_UnitType_Response>(`/availability/v1/unit-groups`, {
+      params: {
+        ...params,
+        ...dateRange,
+        propertyId: hotel_id
+      }
+    })
+
+    console
+    return toConnectedRoomTypeAvailibilityResponse(data)
+  }
+
+
+  // Web hooks
+
+  async webhooksList(): Promise<Models.IConnected_WebHookDefinition[]> {
+    const { data } = await this.http.get<IApaleo_Subscription_Response[]>(`/v1/subscriptions`, {
+      baseURL: "https://webhook.apaleo.com"
+    })
+
+    if (data) {
+      return data.map(d => ({ id: d.id, end_point_url: d.endpointUrl, hotel_ids: d.propertyIds, topics: d.topics }))
+    }
+    return []
+  }
+
+  async webhooksCreate(webhookDefinition: Models.IConnected_WebHookDefinition): Promise<Models.ID> {
+    let body: IApaleo_Subscription_Body = {
+      endpointUrl: webhookDefinition.end_point_url || '',
+      propertyIds: webhookDefinition.hotel_ids || [],
+      topics: webhookDefinition.topics || []
+
+    }
+
+
+    const { data } = await this.http.post<IApaleo_Subscription_Response>(`/v1/subscriptions`, body, {
+      baseURL: "https://webhook.apaleo.com",
+      // headers: {
+      //   'Content-Type': 'application/x-www-form-urlencoded'
+      // },
+    })
+    return data.id
+  }
+  async webhooksUpdate(id: Models.ID, webhookDefinition: Models.IConnected_WebHookDefinition): Promise<Models.ID> {
+
+    let body: IApaleo_Subscription_Body = {
+      endpointUrl: webhookDefinition.end_point_url || '',
+      propertyIds: webhookDefinition.hotel_ids || [],
+      topics: webhookDefinition.topics || []
+
+    }
+
+
+    await this.http.put(`/v1/subscriptions/${id}`, body, {
+      baseURL: "https://webhook.apaleo.com"
+    })
+    return id
+  }
+  async webhooksDelete(webHookId: Models.ID): Promise<ID> {
+    await this.http.delete(`/v1/subscriptions/${webHookId}`, {
+      baseURL: "https://webhook.apaleo.com"
+    })
+
+    return webHookId
   }
 }

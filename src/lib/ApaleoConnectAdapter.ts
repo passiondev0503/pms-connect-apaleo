@@ -167,7 +167,7 @@ export class ApaleoConnectAdaptor
   // ROOM TYPES
 
   async getRoomsTypes(
-    hotelId: string | number,
+    hotelId: ID,
     params: any = {}
   ): Promise<IConnected_ListOf<IConnected_RoomType>> {
     const { data } = await this.http.get<IApaleoUnitGroupList>(

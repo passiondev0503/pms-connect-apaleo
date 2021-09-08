@@ -30,6 +30,13 @@ describe("Webhooks ", () => {
         const webhooks = await apaleo.webhooksList()
 
 
+        // Get by id
+
+        const _wh = await apaleo.webhooksGetById(String(whId))
+
+        expect(_wh.id).toBe(whId)
+
+
 
         // Update
 

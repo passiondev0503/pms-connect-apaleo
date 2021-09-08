@@ -102,6 +102,7 @@ export class ApaleoConnectAdaptor
     }
   }
 
+
   get name(): string {
     return 'apaleo'
   }
@@ -535,6 +536,20 @@ export class ApaleoConnectAdaptor
       return data.map(d => ({ id: d.id, end_point_url: d.endpointUrl, hotel_ids: d.propertyIds, topics: d.topics }))
     }
     return []
+  }
+
+  async webhooksGetById(id: Models.ID): Promise<Models.IConnected_WebHookDefinition> {
+
+    const { data } = await this.http.get<IApaleo_Subscription_Response>(`/v1/subscriptions/${id}`, {
+      baseURL: "https://webhook.apaleo.com"
+    })
+
+    return {
+      id: data.id,
+      end_point_url: data.endpointUrl,
+      hotel_ids: data.propertyIds,
+      topics: data.topics
+    }
   }
 
   async webhooksCreate(webhookDefinition: Models.IConnected_WebHookDefinition): Promise<Models.ID> {

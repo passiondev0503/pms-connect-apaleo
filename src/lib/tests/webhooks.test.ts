@@ -15,7 +15,7 @@ describe("Webhooks ", () => {
             end_point_url: endPoint, //"https://hookb.in/YVDBNJZ1NktQERGGE9BN",
             hotel_ids: ["BER"],
             topics: [
-                "Property"//"RatePlan", "UnitGroup"
+                "RatePlan", "UnitGroup"
             ]
         }).catch((e: AxiosError) => {
             console.log(e.response)
@@ -28,6 +28,13 @@ describe("Webhooks ", () => {
         // List
 
         const webhooks = await apaleo.webhooksList()
+
+
+        // Get by id
+
+        const _wh = await apaleo.webhooksGetById(String(whId))
+
+        expect(_wh.id).toBe(whId)
 
 
 

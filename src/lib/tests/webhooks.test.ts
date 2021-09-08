@@ -15,7 +15,7 @@ describe("Webhooks ", () => {
             end_point_url: endPoint, //"https://hookb.in/YVDBNJZ1NktQERGGE9BN",
             hotel_ids: ["BER"],
             topics: [
-                "Property"//"RatePlan", "UnitGroup"
+                "RatePlan", "UnitGroup"
             ]
         }).catch((e: AxiosError) => {
             console.log(e.response)

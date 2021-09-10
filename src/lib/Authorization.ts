@@ -5,20 +5,23 @@ import axios, { AxiosRequestConfig } from 'axios';
 /**
  * Authorize Apaleo account to access apaleo resources
  * https://apaleo.dev/guides/start/oauth-connection/
- * @returns 
+ * @returns
  */
 interface IApaleoGetAuthorizeUrlOptions {
-  client_id: string
-  redirect_uri: string,
-  client_scope: string
-  state?: string
+  client_id: string;
+  redirect_uri: string;
+  client_scope: string;
+  state?: string;
 }
 export function getAuthorizeUrl(options: IApaleoGetAuthorizeUrlOptions) {
+  let {
+    client_id,
+    redirect_uri,
+    client_scope,
+    state = Date.now() + ''
+  } = options;
 
-  let { client_id, redirect_uri, client_scope, state = Date.now() + "" } = options
-
-  return `${Config.AUTHORIZE_URL}?response_type=code&scope=${client_scope}&client_id=${client_id}&redirect_uri=${redirect_uri}&state=${state}`
-
+  return `${Config.AUTHORIZE_URL}?response_type=code&scope=${client_scope}&client_id=${client_id}&redirect_uri=${redirect_uri}&state=${state}`;
 }
 
 interface IApaleoGenerateTokenOptions {

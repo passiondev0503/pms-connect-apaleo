@@ -31,9 +31,18 @@ import {
   IApaleoAgeCategoryList,
   IApaleoAgeCategory,
   IApaleoServiceList,
-  IApaleoService, IApaleo_Availibility_UnitType_Response
+  IApaleoService,
+  IApaleo_Availibility_UnitType_Response
 } from './ApaleoInterfaces';
-import { IApaleo_Subscription_Body, IApaleo_Subscription_Response } from './apaleo.subscriptions'
+import {
+  IApaleo_WebkookSubscription_Body,
+  IApaleo_WebhookSubscription_Response,
+  IApaleo_ARISubscription,
+  IApaleo_ARISubscriptionList,
+  IApaleo_ARISubscription_Body,
+  toChannectedSubscription,
+  toApaleoARISubscriptionBody
+} from './apaleo.subscriptions';
 import { Config } from './ApaleoConfig';
 
 import {
@@ -50,8 +59,8 @@ import {
 import { IConnected_DateRange } from '../../../pms-connect/dist/shared.models';
 
 const defaultLanguageParams = {
-  languages: "all"
-}
+  languages: 'all'
+};
 
 interface ApaleoConnectAdaptorOptions {
   refresh_token: ITokenValue;
@@ -62,11 +71,12 @@ interface ApaleoConnectAdaptorOptions {
   tokenStore?: IBaseTokenStore | null | undefined;
 }
 
+const DISTRIBUTION_API_BASE = 'https://distribution.apaleo.com/';
+
 export class ApaleoConnectAdaptor
   extends RestRequestDriver
-  implements IBaseAdapter {
-
-
+  implements IBaseAdapter
+{
   constructor(options: ApaleoConnectAdaptorOptions) {
     const {
       client_id = null,
@@ -103,10 +113,8 @@ export class ApaleoConnectAdaptor
   }
 
   get name(): string {
-    return 'apaleo'
+    return 'apaleo';
   }
-
-
 
   getAuthorizeUrl?(params?: any): string {
     throw new Error('Method not implemented.');
@@ -156,7 +164,8 @@ export class ApaleoConnectAdaptor
       `/inventory/v1/properties/${id}`,
       {
         params: {
-          ...defaultLanguageParams, ...params
+          ...defaultLanguageParams,
+          ...params
         }
       }
     );
@@ -190,14 +199,18 @@ export class ApaleoConnectAdaptor
     };
   }
 
-  async getRoomTypeById(roomTypeId: ID, params: any = {}): Promise<Models.IConnected_RoomType> {
+  async getRoomTypeById(
+    roomTypeId: ID,
+    params: any = {}
+  ): Promise<Models.IConnected_RoomType> {
     const res = await this.http.get<IApaleoUnitGroup>(
-      `/inventory/v1/unit-groups/${roomTypeId}`, {
-      params: {
-        ...defaultLanguageParams,
-        ...params
+      `/inventory/v1/unit-groups/${roomTypeId}`,
+      {
+        params: {
+          ...defaultLanguageParams,
+          ...params
+        }
       }
-    }
     );
 
     return toConnectedRoomType(res.data);
@@ -328,12 +341,13 @@ export class ApaleoConnectAdaptor
     params: any = {}
   ): Promise<Models.IConnected_CancellationPolicy> {
     const { data } = await this.http.get<IApaleoCancellationPolicy>(
-      `/rateplan/v1/cancellation-policies/${cancellationPolicyId}`, {
-      params: {
-        ...defaultLanguageParams,
-        ...params
+      `/rateplan/v1/cancellation-policies/${cancellationPolicyId}`,
+      {
+        params: {
+          ...defaultLanguageParams,
+          ...params
+        }
       }
-    }
     );
     return toConnectedCancellationPolicy(data);
   }
@@ -452,12 +466,13 @@ export class ApaleoConnectAdaptor
     params: any = {}
   ): Promise<Models.IConnected_Service> {
     const { data } = await this.http.get<IApaleoService>(
-      `/rateplan/v1/services/${serviceId}`, {
-      params: {
-        ...defaultLanguageParams,
-        ...params
+      `/rateplan/v1/services/${serviceId}`,
+      {
+        params: {
+          ...defaultLanguageParams,
+          ...params
+        }
       }
-    }
     );
 
     return toConnectedService(data);
@@ -504,76 +519,259 @@ export class ApaleoConnectAdaptor
 
   /**
    * Get room type availability
-   * @param hotel_id 
-   * @param dateRange 
-   * @param params 
-   * @returns 
+   * @param hotel_id
+   * @param dateRange
+   * @param params
+   * @returns
    */
 
-  async getAvaialability(hotel_id: Models.ID, dateRange: IConnected_DateRange, params: any = {}): Promise<Models.IConnected_RoomType_AvailabilityResponse> {
-    const { data } = await this.http.get<IApaleo_Availibility_UnitType_Response>(`/availability/v1/unit-groups`, {
-      params: {
-        ...params,
-        ...dateRange,
-        propertyId: hotel_id
-      }
-    })
+  async getAvaialability(
+    hotel_id: Models.ID,
+    dateRange: IConnected_DateRange,
+    params: any = {}
+  ): Promise<Models.IConnected_RoomType_AvailabilityResponse> {
+    const { data } =
+      await this.http.get<IApaleo_Availibility_UnitType_Response>(
+        `/availability/v1/unit-groups`,
+        {
+          params: {
+            ...params,
+            ...dateRange,
+            propertyId: hotel_id
+          }
+        }
+      );
 
-    console
-    return toConnectedRoomTypeAvailibilityResponse(data)
+    console;
+    return toConnectedRoomTypeAvailibilityResponse(data);
   }
-
 
   // Web hooks
 
+  /**
+   * List web hooks
+   * @returns
+   */
+
   async webhooksList(): Promise<Models.IConnected_WebHookDefinition[]> {
-    const { data } = await this.http.get<IApaleo_Subscription_Response[]>(`/v1/subscriptions`, {
-      baseURL: "https://webhook.apaleo.com"
-    })
+    const { data } = await this.http.get<
+      IApaleo_WebhookSubscription_Response[]
+    >(`/v1/subscriptions`, {
+      baseURL: 'https://webhook.apaleo.com'
+    });
 
     if (data) {
-      return data.map(d => ({ id: d.id, end_point_url: d.endpointUrl, hotel_ids: d.propertyIds, topics: d.topics }))
+      return data.map((d) => ({
+        id: d.id,
+        end_point_url: d.endpointUrl,
+        hotel_ids: d.propertyIds,
+        topics: d.topics
+      }));
     }
-    return []
+    return [];
   }
 
-  async webhooksCreate(webhookDefinition: Models.IConnected_WebHookDefinition): Promise<Models.ID> {
-    let body: IApaleo_Subscription_Body = {
+  /**
+   * Get webhook detail by id
+   * @param id
+   * @returns
+   */
+
+  async webhooksGetById(
+    id: Models.ID
+  ): Promise<Models.IConnected_WebHookDefinition> {
+    const { data } = await this.http.get<IApaleo_WebhookSubscription_Response>(
+      `/v1/subscriptions/${id}`,
+      {
+        baseURL: 'https://webhook.apaleo.com'
+      }
+    );
+
+    return {
+      id: data.id,
+      end_point_url: data.endpointUrl,
+      hotel_ids: data.propertyIds,
+      topics: data.topics
+    };
+  }
+
+  /**
+   * Create webhook
+   * @param webhookDefinition
+   * @returns
+   */
+
+  async webhooksCreate(
+    webhookDefinition: Models.IConnected_WebHookDefinition
+  ): Promise<Models.ID> {
+    let body: IApaleo_WebkookSubscription_Body = {
       endpointUrl: webhookDefinition.end_point_url || '',
       propertyIds: webhookDefinition.hotel_ids || [],
       topics: webhookDefinition.topics || []
+    };
 
-    }
-
-
-    const { data } = await this.http.post<IApaleo_Subscription_Response>(`/v1/subscriptions`, body, {
-      baseURL: "https://webhook.apaleo.com",
-      // headers: {
-      //   'Content-Type': 'application/x-www-form-urlencoded'
-      // },
-    })
-    return data.id
+    const { data } = await this.http.post<IApaleo_WebhookSubscription_Response>(
+      `/v1/subscriptions`,
+      body,
+      {
+        baseURL: 'https://webhook.apaleo.com'
+        // headers: {
+        //   'Content-Type': 'application/x-www-form-urlencoded'
+        // },
+      }
+    );
+    return data.id;
   }
-  async webhooksUpdate(id: Models.ID, webhookDefinition: Models.IConnected_WebHookDefinition): Promise<Models.ID> {
 
-    let body: IApaleo_Subscription_Body = {
+  /**
+   * Update webhook
+   * @param id
+   * @param webhookDefinition
+   * @returns
+   */
+  async webhooksUpdate(
+    id: Models.ID,
+    webhookDefinition: Models.IConnected_WebHookDefinition
+  ): Promise<Models.ID> {
+    let body: IApaleo_WebkookSubscription_Body = {
       endpointUrl: webhookDefinition.end_point_url || '',
       propertyIds: webhookDefinition.hotel_ids || [],
       topics: webhookDefinition.topics || []
-
-    }
-
+    };
 
     await this.http.put(`/v1/subscriptions/${id}`, body, {
-      baseURL: "https://webhook.apaleo.com"
-    })
-    return id
+      baseURL: 'https://webhook.apaleo.com'
+    });
+    return id;
   }
+
+  /**
+   * Delete a webhook by its id
+   * @param webHookId
+   * @returns
+   */
   async webhooksDelete(webHookId: Models.ID): Promise<ID> {
     await this.http.delete(`/v1/subscriptions/${webHookId}`, {
-      baseURL: "https://webhook.apaleo.com"
-    })
+      baseURL: 'https://webhook.apaleo.com'
+    });
 
-    return webHookId
+    return webHookId;
+  }
+
+  // ARI Subscription data
+  /**
+   * Get all ARI subscriptions
+   * @returns
+   */
+  async getARISubscriptions(): Promise<
+    Models.IConnected_SubscriptionDefinition[]
+  > {
+    const { data } = await this.http.get<IApaleo_ARISubscriptionList>(
+      `/v1/subscriptions`,
+      {
+        baseURL: DISTRIBUTION_API_BASE
+      }
+    );
+
+    if (!data || !data.subscriptions) {
+      return [];
+    }
+    return data.subscriptions.map((s) => toChannectedSubscription(s));
+  }
+
+  /**
+   * Get ARI subscriptions by id
+   * @param id
+   * @returns
+   */
+
+  async getARISubscriptionById(
+    id: Models.ID
+  ): Promise<Models.IConnected_SubscriptionDefinition> {
+    const { data } = await this.http.get<IApaleo_ARISubscription>(
+      `/v1/subscriptions/${id}`,
+      {
+        baseURL: DISTRIBUTION_API_BASE
+      }
+    );
+    return toChannectedSubscription(data);
+  }
+
+  /**
+   * Create new ARI subscriptions
+   * @param reqBody
+   * @returns
+   */
+
+  async createARISubscription(
+    reqBody: Models.IConnected_SubscriptionBody
+  ): Promise<Models.ID> {
+    let body: IApaleo_ARISubscription_Body =
+      toApaleoARISubscriptionBody(reqBody);
+    const { data } = await this.http.post<{ id: string }>(
+      `/v1/subscriptions`,
+      body,
+      {
+        baseURL: DISTRIBUTION_API_BASE
+      }
+    );
+
+    return data.id;
+  }
+
+  /**
+   * Update ARI subscriptions
+   * @param id
+   * @param reqBody
+   * @returns
+   */
+
+  async updateARISubscription(
+    id: Models.ID,
+    reqBody: Models.IConnected_SubscriptionBody
+  ): Promise<Models.ID> {
+    let body: IApaleo_ARISubscription_Body =
+      toApaleoARISubscriptionBody(reqBody);
+    await this.http.put<any>(`/v1/subscriptions/${id}`, body, {
+      baseURL: DISTRIBUTION_API_BASE
+    });
+    return id;
+  }
+
+  /**
+   * Delete ARI subscription by id
+   * @param id
+   * @returns
+   */
+
+  async deleteARISubscription(id: Models.ID): Promise<Models.ID> {
+    await this.http.delete<any>(`/v1/subscriptions/${id}`, {
+      baseURL: DISTRIBUTION_API_BASE
+    });
+    return id;
+  }
+
+  /**
+   * Trigger ARI Subscription event
+   * @param id
+   * @param event
+   * @returns
+   */
+
+  async triggerARISubscriptionEvent(
+    id: Models.ID,
+    event: string
+  ): Promise<Models.ID> {
+    if (event === 'sync') {
+      await this.http.put(
+        `/v1/subscriptions/${id}/trigger-full-sync`,
+        {},
+        {
+          baseURL: DISTRIBUTION_API_BASE
+        }
+      );
+    }
+
+    return id;
   }
 }

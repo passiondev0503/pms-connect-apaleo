@@ -18,6 +18,7 @@ import {
   IApaeloAccount,
   IApaleoProperty,
   IApaleoPropertyList,
+  IApaleoAccountLanguageList,
   IApaleoUnitGroupList,
   IApaleoUnitGroup,
   IApaleoRatePlanList,
@@ -46,6 +47,7 @@ import {
 import { Config } from './ApaleoConfig';
 
 import {
+  toConnectedAccount,
   toConnectedHotel,
   toConnectedRoomType,
   toConnectedRatePaln,
@@ -129,7 +131,18 @@ export class ApaleoConnectAdaptor
     const res = await this.http.get<IApaeloAccount>(
       `/account/v1/accounts/current`
     );
-    return res.data;
+    return toConnectedAccount(res.data);
+  }
+
+  async getLanguages(params: any = {}): Promise<Models.IConnected_Language[]> {
+    const { data } = await this.http.get<IApaleoAccountLanguageList>(
+      `/settings/v1/languages`,
+      {
+        params
+      }
+    );
+
+    return data.languages;
   }
 
   // HOTELS

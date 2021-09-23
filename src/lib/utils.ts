@@ -1,5 +1,6 @@
 import { Models } from '@cord-travel/pms-connect';
 import {
+  IConnected_Account,
   IConnected_Hotel,
   IConnected_RatePlan,
   IConnected_Rate,
@@ -13,6 +14,7 @@ import {
 } from '../../../pms-connect/dist/models';
 import { IMultiLanguageObject } from '../../../pms-connect/dist/shared.models';
 import {
+  IApaeloAccount,
   IApaleoProperty,
   IApaleoPropertyItem,
   IApaleoUnitGroup,
@@ -41,6 +43,17 @@ function toConnectedLanguage(
   }
 
   return data;
+}
+
+export function toConnectedAccount(acc: IApaeloAccount): IConnected_Account {
+  return {
+    id: acc.code,
+    code: acc.code,
+    company_name: acc.companyName,
+    name: acc.name,
+    description: acc.description,
+    image_url: acc.logoUrl
+  };
 }
 
 export function toConnectedHotel(

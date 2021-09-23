@@ -18,6 +18,7 @@ import {
   IApaeloAccount,
   IApaleoProperty,
   IApaleoPropertyList,
+  IApaleoAccountLanguageList,
   IApaleoUnitGroupList,
   IApaleoUnitGroup,
   IApaleoRatePlanList,
@@ -46,6 +47,7 @@ import {
 import { Config } from './ApaleoConfig';
 
 import {
+  toConnectedAccount,
   toConnectedHotel,
   toConnectedRoomType,
   toConnectedRatePaln,
@@ -75,8 +77,7 @@ const DISTRIBUTION_API_BASE = 'https://distribution.apaleo.com/';
 
 export class ApaleoConnectAdaptor
   extends RestRequestDriver
-  implements IBaseAdapter
-{
+  implements IBaseAdapter {
   constructor(options: ApaleoConnectAdaptorOptions) {
     const {
       client_id = null,
@@ -129,7 +130,18 @@ export class ApaleoConnectAdaptor
     const res = await this.http.get<IApaeloAccount>(
       `/account/v1/accounts/current`
     );
-    return res.data;
+    return toConnectedAccount(res.data);
+  }
+
+  async getLanguages(params: any = {}): Promise<Models.IConnected_Language[]> {
+    const { data } = await this.http.get<IApaleoAccountLanguageList>(
+      `/settings/v1/languages`,
+      {
+        params
+      }
+    );
+
+    return data.languages;
   }
 
   // HOTELS
@@ -170,7 +182,13 @@ export class ApaleoConnectAdaptor
       }
     );
 
-    return toConnectedHotel(data);
+    const { data: countData } = await this.http.get<{ count: number }>(`/inventory/v1/units/$count?=BER'`, {
+      params: {
+        propertyId: id
+      }
+    })
+
+    return toConnectedHotel(data, countData.count || null);
   }
 
   // ROOM TYPES

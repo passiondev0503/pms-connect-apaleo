@@ -15,8 +15,6 @@ export interface IApaleoBankAccount {
   bank: string;
 }
 export interface IApaeloAccount {
-  id: string;
-
   code: string;
 
   propertyTemplateId: string;
@@ -33,6 +31,18 @@ export interface IApaeloAccount {
   timeZone: string;
 
   currencyCode: string;
+
+  logoUrl: string;
+}
+
+interface IApaleoLanguage {
+  code: string;
+  default: boolean;
+  mandatory: boolean;
+}
+
+export interface IApaleoAccountLanguageList {
+  languages: IApaleoLanguage[];
 }
 
 export interface IApaleoPropertyItem {

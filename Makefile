@@ -10,3 +10,5 @@ clean:
 publish: test clean build
 	npm publish
 
+link:
+	npm link @cord-travel/pms-connect

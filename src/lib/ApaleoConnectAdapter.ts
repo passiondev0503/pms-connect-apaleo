@@ -77,7 +77,8 @@ const DISTRIBUTION_API_BASE = 'https://distribution.apaleo.com/';
 
 export class ApaleoConnectAdaptor
   extends RestRequestDriver
-  implements IBaseAdapter {
+  implements IBaseAdapter
+{
   constructor(options: ApaleoConnectAdaptorOptions) {
     const {
       client_id = null,
@@ -182,11 +183,14 @@ export class ApaleoConnectAdaptor
       }
     );
 
-    const { data: countData } = await this.http.get<{ count: number }>(`/inventory/v1/units/$count?=BER'`, {
-      params: {
-        propertyId: id
+    const { data: countData } = await this.http.get<{ count: number }>(
+      `/inventory/v1/units/$count?=BER'`,
+      {
+        params: {
+          propertyId: id
+        }
       }
-    })
+    );
 
     return toConnectedHotel(data, countData.count || null);
   }
@@ -437,8 +441,10 @@ export class ApaleoConnectAdaptor
     );
 
     return {
-      data: data.ageCategories.map((a) => toConnectedAgeCategory(a)),
-      count: data.count
+      data: data.ageCategories
+        ? data.ageCategories.map((a) => toConnectedAgeCategory(a))
+        : [],
+      count: data.count ? data.count : 0
     };
   }
 

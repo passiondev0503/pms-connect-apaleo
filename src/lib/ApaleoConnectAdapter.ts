@@ -31,6 +31,8 @@ import {
   IApaleoNoShowPolicy,
   IApaleoAgeCategoryList,
   IApaleoAgeCategory,
+  IApaleoTimeSliceDefinitionList,
+  IApaleoTimeSliceDefinition,
   IApaleoServiceList,
   IApaleoService,
   IApaleo_Availibility_UnitType_Response
@@ -56,7 +58,8 @@ import {
   toConnectedNoShowPolicy,
   toConnectedAgeCategory,
   toConnectedService,
-  toConnectedRoomTypeAvailibilityResponse
+  toConnectedRoomTypeAvailibilityResponse,
+  toConnectedTimeSliceDefinition
 } from './utils';
 import { IConnected_DateRange } from '../../../pms-connect/dist/shared.models';
 
@@ -500,6 +503,43 @@ export class ApaleoConnectAdaptor
     );
 
     return toConnectedService(data);
+  }
+
+  // TimeSlice Definitions
+
+  async getTimeSliceDefinitions(
+    hotelId: Models.ID,
+    params: any = {}
+  ): Promise<Models.IConnected_ListOf<Models.IConnected_TimeSliceDefinition>> {
+    const { data } = await this.http.get<IApaleoTimeSliceDefinitionList>(
+      `settings/v1/properties/${hotelId}/time-slice-definitions`,
+      {
+        params
+      }
+    );
+
+    return {
+      data: data.timeSliceDefinitions
+        ? data.timeSliceDefinitions.map((t) =>
+            toConnectedTimeSliceDefinition(t)
+          )
+        : [],
+      count: data.count ? data.count : 0
+    };
+  }
+  async getTimeSliceDefinitionDetail(
+    hotel_id: Models.ID,
+    id: Models.ID,
+    params: any = {}
+  ): Promise<Models.IConnected_TimeSliceDefinition> {
+    const { data } = await this.http.get<IApaleoTimeSliceDefinition>(
+      `settings/v1/properties/${hotel_id}/time-slice-definitions/${id}`,
+      {
+        params
+      }
+    );
+
+    return toConnectedTimeSliceDefinition(data);
   }
 
   // PROMO CODES

@@ -125,18 +125,33 @@ enum APALEO_CHANNEL_CODES {
   Homelike = 'Homelike',
   Hrs = 'Hrs'
 }
-enum APALEO_TIME_SLICE {
+enum APALEO_TIME_SLICE_TEMPLATES {
   DayUse = 'DayUse',
   OverNight = 'OverNight'
 }
 
-export interface IApaleoTimeSliceDefinition {
+interface IApaleo_Base_TimeSliceDefinition {
   id: string;
-  name: string;
-  template: APALEO_TIME_SLICE;
-  description: string;
+  template: APALEO_TIME_SLICE_TEMPLATES;
   checkInTime: string;
   checkOutTime: string;
+  isUsed: boolean;
+}
+
+export interface IApaleoTimeSliceDefinition
+  extends IApaleo_Base_TimeSliceDefinition {
+  name: IApaleoMultiLangauge;
+  description: IApaleoMultiLangauge;
+}
+
+export interface IApaleoTimeSliceDefinitionItem
+  extends IApaleo_Base_TimeSliceDefinition {
+  name: string;
+  description: string;
+}
+
+export interface IApaleoTimeSliceDefinitionList extends IApaleoPagination {
+  timeSliceDefinitions: IApaleoTimeSliceDefinitionItem[];
 }
 
 export interface IApaleoBookingRestrictionsModel {
@@ -188,7 +203,7 @@ interface IApaleo_Base_RatePlan {
   isSubjectToCityTax: boolean;
   cancellationPolicy: IApaleoCancellationPolicyItem;
   noShowPolicy: IApaleoNoShowPolicyItem;
-  timeSliceDefinition: IApaleoTimeSliceDefinition;
+  timeSliceDefinition: IApaleoTimeSliceDefinitionItem;
   bookingPeriods?: IApaleoBookingPeriodModel[];
   ratesRange?: IApaleoRatesRangeModel;
   promoCodes?: string[];

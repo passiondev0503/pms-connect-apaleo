@@ -10,7 +10,8 @@ import {
   IConnected_Service,
   IConnected_RoomType_AvailabilityResponse,
   IConnected_AvailabilityRoomTypeValues,
-  IConnected_AvailabilityValues
+  IConnected_AvailabilityValues,
+  IConnected_TimeSliceDefinition
 } from '../../../pms-connect/dist/models';
 import { IMultiLanguageObject } from '../../../pms-connect/dist/shared.models';
 import {
@@ -29,7 +30,9 @@ import {
   IApaleoService,
   IApaleo_Availibility_UnitType_Response,
   IApaleo_Avalibility_UnitGroupValues,
-  IApaleo_AvailabilityValues
+  IApaleo_AvailabilityValues,
+  IApaleoTimeSliceDefinition,
+  IApaleoTimeSliceDefinitionItem
 } from './ApaleoInterfaces';
 import { IApaleoMultiLangauge } from './common.inerfaces';
 
@@ -137,13 +140,7 @@ export function toConnectedRatePaln(
         }
       : undefined,
     time_slice_definition: rp.timeSliceDefinition
-      ? {
-          id: rp.timeSliceDefinition.id,
-          name: rp.timeSliceDefinition.name,
-          description: rp.timeSliceDefinition.description,
-          check_in_time: rp.timeSliceDefinition.checkInTime,
-          check_out_time: rp.timeSliceDefinition.checkOutTime
-        }
+      ? toConnectedTimeSliceDefinition(rp.timeSliceDefinition)
       : undefined,
     restrictions: rp.restrictions
       ? {
@@ -336,5 +333,19 @@ function toConnectedAvailibiltyValues(
       out_of_inventory: av.maintenance.outOfInventory,
       out_of_order: av.maintenance.outOfOrder
     }
+  };
+}
+
+// TimeSlice Definition Convert
+export function toConnectedTimeSliceDefinition(
+  td: IApaleoTimeSliceDefinition | IApaleoTimeSliceDefinitionItem
+): IConnected_TimeSliceDefinition {
+  return {
+    id: td.id,
+    code: td.id,
+    name: toConnectedLanguage(td.name),
+    description: toConnectedLanguage(td.description),
+    check_in_time: td.checkInTime,
+    check_out_time: td.checkOutTime
   };
 }

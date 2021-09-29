@@ -33,8 +33,6 @@ describe('Hotels ', () => {
 
     const hotelData = await apaleo.getHotelById(hotels.data[0].id);
 
-
-
     requiredProps.forEach((prop) => {
       expect(hotelData).toHaveProperty(prop);
     });

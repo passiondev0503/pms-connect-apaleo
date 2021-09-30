@@ -158,15 +158,15 @@ export class ApaleoConnectAdaptor
    */
 
   async getHotels(params = {}): Promise<IConnected_ListOf<IConnected_Hotel>> {
-    const res = await this.http.get<IApaleoPropertyList>(
+    const { data } = await this.http.get<IApaleoPropertyList>(
       '/inventory/v1/properties',
       { params }
     );
 
-    let hotels: IConnected_Hotel[] = res.data.properties.map((p) =>
+    let hotels: IConnected_Hotel[] = data.properties.map((p) =>
       toConnectedHotel(p)
     );
-    return { data: hotels, count: res.data.count };
+    return { data: hotels, count: data.count };
   }
 
   /**
@@ -538,6 +538,8 @@ export class ApaleoConnectAdaptor
         params
       }
     );
+
+    console.info(data);
 
     return toConnectedTimeSliceDefinition(data);
   }

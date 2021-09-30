@@ -344,7 +344,6 @@ export function toConnectedTimeSliceDefinition(
     id: td.id,
     code: td.id,
     name: toConnectedLanguage(td.name),
-    description: toConnectedLanguage(td.description),
     check_in_time: td.checkInTime,
     check_out_time: td.checkOutTime
   };

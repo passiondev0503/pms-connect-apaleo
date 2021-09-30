@@ -4,8 +4,8 @@ const defaultTimeSliceProps = [
   'id',
   'code',
   'name',
-  'description',
-  'check_in_time'
+  'check_in_time',
+  'check_out_time'
 ];
 
 describe('TimeSliceDefinition ', () => {

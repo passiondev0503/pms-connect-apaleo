@@ -287,7 +287,8 @@ export class ApaleoConnectAdaptor
       {
         params: {
           ...defaultLanguageParams,
-          ...params
+          ...params,
+          expand: 'cancellationPolicy'
         }
       }
     );
@@ -538,8 +539,6 @@ export class ApaleoConnectAdaptor
         params
       }
     );
-
-    console.info(data);
 
     return toConnectedTimeSliceDefinition(data);
   }

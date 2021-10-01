@@ -9,7 +9,7 @@ let subscriptionData = {
   enabled: true
 };
 
-describe('ARI Subscriptions ', () => {
+describe.skip('ARI Subscriptions ', () => {
   test('Create / update/ delete / list ARI Subscription ', async () => {
     const apaleo = createApaleoAdatperInstance();
 

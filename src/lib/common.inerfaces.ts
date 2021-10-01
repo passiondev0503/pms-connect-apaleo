@@ -1,3 +1,5 @@
+import { ID, AMOUNT_VALUE_TYPE } from '@cord-travel/pms-connect/dist/models';
+
 export interface IApaleoMultiLangauge {
   en: string;
   de?: string;
@@ -14,7 +16,7 @@ export interface IApaleoPeriodModel {
 
 export interface IApaleoSurchargeModel {
   adults: number; //The total numbers of adults
-  type: string[]; // ENUM: Absolute, Percent
+  type: AMOUNT_VALUE_TYPE; // ENUM: Absolute, Percent
   value: number;
 }
 

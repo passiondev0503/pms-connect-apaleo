@@ -1,6 +1,6 @@
 import { createApaleoAdatperInstance } from './helpers';
 import { AxiosError } from 'axios';
-describe('Webhooks ', () => {
+describe.skip('Webhooks ', () => {
   test(' webhook create/list/update/delete', async () => {
     // create
 

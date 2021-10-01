@@ -1,4 +1,4 @@
-import { ID } from '../../../pms-connect/dist/models';
+import { ID, AMOUNT_VALUE_TYPE } from '@cord-travel/pms-connect/dist/models';
 
 import {
   IApaleoMultiLangauge,
@@ -80,6 +80,13 @@ export interface IApaleoProperty {
   isArchived: boolean;
 }
 
+export interface IApaleoPropertyEmbeded {
+  id: string;
+  code?: string;
+  name: string;
+  description: string;
+}
+
 export interface IApaleoPropertyList extends IApaleoPagination {
   properties: IApaleoPropertyItem[];
 }
@@ -90,6 +97,18 @@ export interface IApaleoUnitGroup {
   name: IApaleoMultiLangauge;
   memberCount: number; // No of rooms in this type
   description: IApaleoMultiLangauge;
+  maxPersons: number;
+  rank: number;
+  type: string;
+  property: IApaleoPropertyItem;
+}
+
+export interface IApaleoUnitGroupEmbeded {
+  id: string;
+  code: string;
+  name: string;
+  memberCount: number; // No of rooms in this type
+  description: string;
   maxPersons: number;
   rank: number;
   type: string;
@@ -169,11 +188,12 @@ export enum APALEO_PRICING_MODE {
 }
 export interface IApaleoPricingRuleModel {
   baseRatePlan: IApaleoRatePlan;
-  type: PRICE_CALCULATION_TYPE;
+  type: AMOUNT_VALUE_TYPE;
   value: number;
 }
 
 export interface IApaleoAgeCategorySurchargeModel {
+  type: AMOUNT_VALUE_TYPE;
   adults: number;
   value: number;
 }
@@ -196,10 +216,12 @@ export interface IApaleoRatePlanList extends IApaleoPagination {
 interface IApaleo_Base_RatePlan {
   id: string;
   code: string;
+  property: IApaleoPropertyEmbeded;
+  unitGroup: IApaleoUnitGroupEmbeded;
   channelCodes: APALEO_CHANNEL_CODES[]; //
   isBookable: boolean;
-  minGuaranteeType: APALEO_MIN_GUARANTEE_TYPE[];
-  priceCalculationMode?: APALEO_PRICE_CALCULATION_MODE[];
+  minGuaranteeType: APALEO_MIN_GUARANTEE_TYPE;
+  priceCalculationMode?: APALEO_PRICE_CALCULATION_MODE;
   isSubjectToCityTax: boolean;
   cancellationPolicy: IApaleoCancellationPolicyItem;
   noShowPolicy: IApaleoNoShowPolicyItem;

@@ -102,6 +102,7 @@ export function toConnectedRoomType(
 export function toConnectedRatePaln(
   rp: IApaleoRatePlan | IApaleoRatePlanItem
 ): IConnected_RatePlan {
+  // console.log('#RATEPLAN: APALEO', rp);
   return {
     id: rp.id,
     code: rp.code,
@@ -109,10 +110,19 @@ export function toConnectedRatePaln(
     description: toConnectedLanguage(rp.description),
     rates_range: rp.ratesRange,
     channel_codes: rp.channelCodes,
+    room_type: rp.unitGroup
+      ? {
+          id: rp.unitGroup.id || undefined,
+          code: rp.unitGroup.code || undefined,
+          hotel_id: rp.property.id || undefined
+        }
+      : undefined,
+
     minimum_guarantee_type: rp.minGuaranteeType,
     cancellation_policy: rp.cancellationPolicy
       ? {
           id: rp.cancellationPolicy.id,
+          code: rp.cancellationPolicy.code,
 
           name: {
             en:
@@ -131,6 +141,7 @@ export function toConnectedRatePaln(
     no_show_policy: rp.noShowPolicy
       ? {
           id: rp.noShowPolicy.id,
+          code: rp.noShowPolicy.code || undefined,
           name: {
             en: <string>rp.noShowPolicy.name
           },
@@ -161,6 +172,7 @@ export function toConnectedRatePaln(
           id: ac.id,
           surcharges: ac.surcharges.map((sc) => {
             return {
+              type: sc.type,
               value: sc.value,
               adults: sc.adults
             };
@@ -182,8 +194,8 @@ export function toConnectedRatePaln(
     surcharges: rp.surcharges
       ? rp.surcharges.map((sc) => ({
           adults: sc.adults,
-          value: sc.value
-          // type: sc.type
+          value: sc.value,
+          type: sc.type
         }))
       : []
   };

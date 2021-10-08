@@ -45,7 +45,7 @@ import {
   IApaleo_ARISubscription_Body,
   toChannectedSubscription,
   toApaleoARISubscriptionBody
-} from './apaleo.subscriptions';
+} from './subscriptions';
 import { Config } from './ApaleoConfig';
 
 import {

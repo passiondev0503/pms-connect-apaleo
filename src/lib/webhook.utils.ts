@@ -15,6 +15,7 @@ export function toConnectedWebHookPayload(
     ? ICONNECTED_WEBHOOK_EVENT_TYPE[p.type]
     : null;
 
+  console.log('Apaleo RAW  payload', p);
   console.log('internal type ', type);
 
   if (!type) return null;
@@ -32,6 +33,9 @@ export function toConnectedWebHookPayload(
       break;
     case APALEO_WEBHOOK_TOPICS.Unit:
       entity = ICONNECTED_WEBHOOK_ENTITY['room'];
+      break;
+    case APALEO_WEBHOOK_TOPICS.RatePlan:
+      entity = ICONNECTED_WEBHOOK_ENTITY['rate-plan'];
       break;
 
     default:

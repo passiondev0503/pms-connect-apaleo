@@ -3,7 +3,7 @@ import { createApaleoAdatperInstance } from './helpers';
 let subscriptionData = {
   endpoint_url: 'https://webhook-data-console.vercel.app/api/webhooks/three',
   hotel_id: 'BER',
-  channel_code: 'ChannelManager',
+  channel_code: 'Ibe',
   rate_plan_ids: ['BER-APALEO-SGL', 'BER-APALEO-DBL'],
   number_of_days: 2,
   enabled: true

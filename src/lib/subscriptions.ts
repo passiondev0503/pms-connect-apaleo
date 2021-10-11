@@ -133,3 +133,46 @@ export function toApaleoARISubscriptionBody(
     enabled: s.enabled
   };
 }
+
+// ARI Data
+
+interface IApaleo_ARIDataRestrictions {
+  minAdvanceBookingPeriod: string;
+  maxAdvanceBookingPeriod: string;
+  closed: boolean;
+  closedOnArrival: boolean;
+  closedOnDeparture: boolean;
+  minLengthOfStay: number;
+  maxLengthOfStay: number;
+}
+export interface IApaleo_ARIDataTimeSlice {
+  ratePlanId: string;
+  unitGroupId: string;
+  available: number;
+  restrictions: IApaleo_ARIDataRestrictions;
+  prices: IApaleo_ARIDataTimeSlicePrice[];
+  from: string;
+  to: string;
+}
+
+export interface IApaleo_ARIDataPayload {
+  accountId: string;
+  propertyId: string;
+  timeSlices: IApaleo_ARIDataTimeSlice[];
+}
+
+export interface IApaleo_ARIDataTimeSlicePrice {
+  adults: number;
+  price: IApaleoRatePlanPrice;
+}
+
+export interface IApaleoRatePlanPrice {
+  grossAmount: number;
+  beforeTax: number;
+  afterTax: number;
+  taxes: {
+    vat: number;
+    cityTax: number;
+  };
+  currency: string;
+}

@@ -10,7 +10,8 @@ import {
   IConnected_ListOf,
   IConnected_Account,
   IConnected_Hotel,
-  IConnected_RoomType
+  IConnected_RoomType,
+  IConnected_BookingResponse
 } from '@cord-travel/pms-connect/dist/models';
 
 import { ApaleoGenerateAccessToken } from './Authorization';
@@ -35,7 +36,7 @@ import {
   IApaleoTimeSliceDefinition,
   IApaleoServiceList,
   IApaleoService,
-  IApaleo_Availibility_UnitType_Response
+  IApaleo_Availibility_UnitType_Response,
 } from './ApaleoInterfaces';
 import {
   IApaleo_WebkookSubscription_Body,
@@ -62,6 +63,7 @@ import {
   toConnectedTimeSliceDefinition
 } from './utils';
 import { IConnected_DateRange } from '../../../pms-connect/dist/shared.models';
+import { IApaleo_BookingResponse, toApaleoBookingPayload } from './Booking'
 
 const defaultLanguageParams = {
   languages: 'all'
@@ -80,8 +82,7 @@ const DISTRIBUTION_API_BASE = 'https://distribution.apaleo.com/';
 
 export class ApaleoConnectAdaptor
   extends RestRequestDriver
-  implements IBaseAdapter
-{
+  implements IBaseAdapter {
   constructor(options: ApaleoConnectAdaptorOptions) {
     const {
       client_id = null,
@@ -116,6 +117,7 @@ export class ApaleoConnectAdaptor
       this.setTokenStore(options.tokenStore);
     }
   }
+
 
   get name(): string {
     return 'apaleo';
@@ -522,8 +524,8 @@ export class ApaleoConnectAdaptor
     return {
       data: data.timeSliceDefinitions
         ? data.timeSliceDefinitions.map((t) =>
-            toConnectedTimeSliceDefinition(t)
-          )
+          toConnectedTimeSliceDefinition(t)
+        )
         : [],
       count: data.count ? data.count : 0
     };
@@ -838,5 +840,27 @@ export class ApaleoConnectAdaptor
     }
 
     return id;
+  }
+
+  // Booking
+
+  async bookReservations(hotelId: Models.ID, payload: Models.IConnected_CreateBookPayload): Promise<IConnected_BookingResponse> {
+
+
+    const { data } = await this.http.post<IApaleo_BookingResponse>(`v1/bookings`, toApaleoBookingPayload(payload), {
+      baseURL: DISTRIBUTION_API_BASE
+    })
+
+    console.log('booking response ', data)
+
+    if (data) {
+
+      return {
+        id: data.id,
+        reservations: data.reservations ? data.reservations.map(r => r.id) : []
+      }
+    }
+    return null
+
   }
 }
